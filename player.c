@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.8(ロン処理実装)
+ * バージョン     ： 0.0.1.0.9(暗槓処理実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/22 17:13:12
+ * 最終更新日     ： 2024/06/23 10:53:04
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -299,10 +299,7 @@ void print_sutekoho(int sutenum){
 /* ---------------------------------------------------------------------------------------------- */
 // 卓開始処理
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActTakuStart(struct MJSPlyInfo *pinfo, int tmp_ply_num){
-
-	// プレーヤタイプ設定
-	ply_type = PLYCHAR_NONAME;
+void PlyActTakuStart(int tmp_ply_num){
 
 	// 自分のプレーヤ番号を設定
 	ply_num = tmp_ply_num;
@@ -310,18 +307,13 @@ void PlyActTakuStart(struct MJSPlyInfo *pinfo, int tmp_ply_num){
 	// 下家のプレーヤ番号を設定
 	ply_num_shimo = ( tmp_ply_num + 3 ) % 4;
 
-	// 赤牌最大数の設定
-	max_aka_count[0] = 4;
-	max_aka_count[1] = 4;
-	max_aka_count[2] = 4;
-
-	// pinfo構造体値定義(テスト用)
-	pinfo->sample_num = ply_num_shimo;
-
+	// ----------------------------------------
 	// 結果表示
-	printf("================\n");
+	// ----------------------------------------
+/*	printf("================\n");
 	printf("ply_num = %d\n", ply_num);
 	printf("ply_num_shimo = %d\n", ply_num_shimo);
+*/
 
 }
 
@@ -329,6 +321,9 @@ void PlyActTakuStart(struct MJSPlyInfo *pinfo, int tmp_ply_num){
 // 局開始処理
 /* ---------------------------------------------------------------------------------------------- */
 void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
+
+	// プレーヤタイプ設定
+	ply_type = PLYCHAR_NONAME;
 
 	// 家情報
 	ie = tmp_ie;
@@ -339,6 +334,11 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	for(int i=0; i< PAI_MAX; i++){
 		tehai[i] = 0;
 	}
+
+	// 赤牌最大数の設定
+	max_aka_count[0] = 1;
+	max_aka_count[1] = 1;
+	max_aka_count[2] = 1;
 
 	// 赤牌初期化
 	aka_count[0] = 0;
@@ -427,6 +427,10 @@ void PlyActPostHaipai(){
 
 	// プレーヤー鳴きテーブルの更新
 	PlyChkNakitbl();
+
+	// ----------------------------------------
+	// 結果表示
+	// ----------------------------------------
 
 	// 手牌ヒストグラム表示
 	// print_tehai_hist();
@@ -540,6 +544,22 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 			pinfo->act_aka_count = 0;
 		}
 
+	// 暗槓の場合
+	}else if( ply_act == ACTANKAN){
+
+		// アクション定義
+		pinfo->ply_act = ply_act;
+
+		// アクション牌の定義(自摸牌)
+		pinfo->act_hai = ply_naki_idx;
+
+		// 牌INDEXの定義
+		pinfo->act_idx = ply_naki_idx;
+
+		// 赤牌枚数
+		pinfo->act_aka_count = 1;
+
+	// その他の場合(捨牌、自摸切り)
 	}else{
 
 		// アクション定義

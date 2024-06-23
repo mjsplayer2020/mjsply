@@ -1,20 +1,44 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.8(ロン処理実装)
+ * バージョン     ： 0.0.1.0.9(py.bot作成)
  * プログラム名   ： mjs
- * ファイル名     ： mjs.c
+ * ファイル名     ： mjsso.c
  * クラス名       ： MJSMjaiClient
  * 処理概要       ： Mjaiクライアント処理クラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/22 17:13:12
+ * 最終更新日     ： 2024/06/23 10:53:04
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
  * ---------------------------------------------------------------------------------------------- */
 
 #include <Python.h>
-#include "mjs.h"
+#include "client.h"
+
+/* ---------------------------------------------------------------------------------------------- */
+// メッセージ定義処理
+/* ---------------------------------------------------------------------------------------------- */
+static PyObject* init_mjs_module(PyObject* self, PyObject* args){
+
+	// 変数定義
+	int ply_id;
+	int ret;
+
+	// 引数変換
+    if ( !PyArg_ParseTuple(args, "i", &ply_id) ){
+        return NULL;
+    }
+
+	// 初期化処理
+	set_ply_id(ply_id);
+	ret = 0;
+
+	// 処理終了：返り値
+    return Py_BuildValue("i", ret);
+
+}
+
 
 /* ---------------------------------------------------------------------------------------------- */
 // メッセージ定義処理
@@ -43,6 +67,7 @@ static PyObject* get_message(PyObject* self, PyObject* args){
 // Function Definition struct
 /* ---------------------------------------------------------------------------------------------- */
 static PyMethodDef myMethods[] = {
+    { "init_mjs_module", init_mjs_module, METH_VARARGS, "Init Module" },
     { "get_message", get_message, METH_VARARGS, "Get messages" },
     { NULL }
 };

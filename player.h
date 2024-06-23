@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.8(ロン処理実装)
+ * バージョン     ： 0.0.1.0.9(暗槓処理実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/22 17:13:12
+ * 最終更新日     ： 2024/06/23 10:53:04
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -209,8 +209,8 @@ typedef enum {
 	struct MJSPlyInfo{
 		LBPAct ply_act;                     // プレーヤーのアクションステータス
 		int act_hai;                        // アクション時に指定した牌
-		int act_aka_count;                  // 赤牌枚数
 		int act_idx;                        // 牌INDEX
+		int act_aka_count;                  // 赤牌枚数
 		int sample_num;                     // デバグ用
 	};
 
@@ -227,7 +227,7 @@ typedef enum {
 	void PlyPost();
 
 	// 1-1.卓開始・終了
-	void PlyActTakuStart(struct MJSPlyInfo *pinfo, int tmp_ply_num);
+	void PlyActTakuStart(int tmp_ply_num);
 	void PlyActTakuEnd();
 
 	// 1-2.局開始・終了
@@ -320,9 +320,9 @@ typedef enum {
 	/* ----------------------------- */
 
 	// 汎用関数
-	void print_tehai_line();            // ライン手牌情報表示
-	void print_tehai_hist();            // 手牌ヒストグラム表示
-	void print_tehai_aka();
+	void print_tehai_line();                 // ライン手牌情報表示
+	void print_tehai_hist();                 // 手牌ヒストグラム表示
+	void print_tehai_aka();                  // 手牌の赤牌枚数
 
 	// 手牌詳細情報
 	void print_tsumoari_tehai_info();        // 自摸有り手牌の詳細銃砲

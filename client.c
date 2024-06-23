@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.8(ロン処理実装)
+ * バージョン     ： 0.0.1.0.9(暗槓処理実装)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/22 17:13:12
+ * 最終更新日     ： 2024/06/23 10:53:04
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -18,10 +18,29 @@
 /* ---------------------------------------------------------------------------------------------- */
 // メイン処理
 /* ---------------------------------------------------------------------------------------------- */
+void set_ply_id(int tmp_ply_id){
+
+	// 卓開始処理(Ply_id設定)
+	ply_id = tmp_ply_id;
+	PlyActTakuStart(tmp_ply_id);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// メイン処理
+/* ---------------------------------------------------------------------------------------------- */
 void set_taku_stat_main(struct MJSClient *cli, char* tmp_res_mes, char* tmp_snd_mes){
+
+	// ----------------------------------------
+	// 初期化処理
+	// ----------------------------------------
 
 	// 構造体定義
 	struct MJSPlyInfo pinfo;
+
+	// ----------------------------------------
+	// メイン処理
+	// ----------------------------------------
 
 	// 解析
 	read_logline(cli, tmp_res_mes);
@@ -357,8 +376,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_type_startgame(cli, tmp_i);
 
 				// 卓開始処理
-				PlyActTakuStart(pinfo, ply_id);
-				// printf("pinfo.sample_num = %d\n", pinfo->sample_num);
+				PlyActTakuStart(ply_id);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -414,6 +432,9 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				// アクション設定：リーチ後の捨牌処理
 				// Set_type_ankan(tk,gui, tmp_i);
 
+				// type_noneメッセージの設定
+				set_snd_none_mes(tmp_snd_mes);
+
 				// メッセージ確定のために処理抜け
 				break;
 
@@ -425,6 +446,9 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 
 				// アクション設定：リーチ後の捨牌処理
 				// Set_type_kakan(tk,gui, tmp_i);
+
+				// type_noneメッセージの設定
+				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
 				break;
@@ -450,6 +474,9 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				// アクション設定
 				// Set_type_pon(tk,gui, tmp_i);
 
+				// type_noneメッセージの設定
+				set_snd_none_mes(tmp_snd_mes);
+
 				// メッセージ確定のために処理抜け
 				break;
 
@@ -462,6 +489,9 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				// アクション設定
 				// Set_type_chi(tk,gui, tmp_i);
 
+				// type_noneメッセージの設定
+				set_snd_none_mes(tmp_snd_mes);
+
 				// メッセージ確定のために処理抜け
 				break;
 
@@ -473,6 +503,9 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 
 				// アクション設定
 				// Set_type_minkan(tk,gui, tmp_i);
+
+				// type_noneメッセージの設定
+				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
 				break;
@@ -753,24 +786,8 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		// ----------------------------------------
 		// pinfo結果表示
 		// ----------------------------------------
-/*
-		// 結果表示
-		printf("================\n");
-		if(pinfo->ply_act == ACTTSUMOAGARI){
-			printf("アクション：自摸和了\n");
-		}else if(pinfo->ply_act == ACTSUTE){
-			printf("アクション：捨牌　　\n");
-		}else if(pinfo->ply_act == ACTTSUMOGIRI){
-			printf("アクション：自摸切り\n");
-		}else if(pinfo->ply_act == ACTRIICH){
-			printf("アクション：リーチ　\n");
-		}else{
-			printf("アクション：不明　　\n");
-		}
+		print_pinfo_act(pinfo);
 
-		printf("pinfo->act_hai = %d\n", pinfo->act_hai);
-		printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
-*/
 		// ----------------------------------------
 		// メッセージ定義
 		// ----------------------------------------
@@ -780,11 +797,13 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		// ply関数処理(自摸後アクション)
 		// ----------------------------------------
 
-		// 自摸和了
-		if(pinfo->ply_act == ACTTSUMOAGARI){
-
+		// 暗槓
+		if(pinfo->ply_act == ACTANKAN){
+			PlyActAnkan(pinfo->act_idx);
+		// 捨牌
 		}else if(pinfo->ply_act == ACTSUTE){
 			PlyActTsumoSute();
+		// 自摸切り
 		}else if(pinfo->ply_act == ACTTSUMOGIRI){
 			PlyActTsumoSute();
 		}
@@ -882,7 +901,7 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 	// ----------------------------------------
 	if( ply_id == tmp_ply_sute_id ){
 
-		// type_noneメッセージの設定
+		// メッセージ定義：処理なし
 		set_snd_none_mes(tmp_snd_mes);
 
 	// ----------------------------------------
@@ -960,7 +979,7 @@ void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
 			tmp_aka_flg = false;
 		}
 
-		// 和了メッセージ定義
+		// メッセージ定義：自摸和了
 		set_snd_hora_mes(tmp_snd_mes, ply_id, pinfo->act_hai, tmp_aka_flg); 
 
 	// ----------------------------------------
@@ -974,10 +993,11 @@ void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
 			tmp_aka_flg = false;
 		}
 
+		// メッセージ定義：捨牌
 		set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, tmp_aka_flg, false); 
 
 	// ----------------------------------------
-	// 捨牌
+	// 自摸切り
 	// ----------------------------------------
 	}else if(pinfo->ply_act == ACTTSUMOGIRI){
 
@@ -987,19 +1007,34 @@ void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
 			tmp_aka_flg = false;
 		}
 
-		set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, tmp_aka_flg, true); 
+		// メッセージ定義：自摸切り
+		// set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, tmp_aka_flg, true); 
+		set_snd_dahai_mes(tmp_snd_mes, cli_tsumo_hai, cli_tsumo_aka, true); 
 
 	// ----------------------------------------
 	// リーチアクション
 	// ----------------------------------------
 	}else if(pinfo->ply_act == ACTRIICH){
+
+		// メッセージ定義：リーチ宣言
 		set_snd_riichi_mes(tmp_snd_mes);
+
+	// ----------------------------------------
+	// 暗槓アクション
+	// ----------------------------------------
+	}else if(pinfo->ply_act == ACTANKAN){
+
+		// メッセージ定義：暗槓
+		set_snd_ankan_mes(tmp_snd_mes, pinfo->act_idx, pinfo->act_aka_count);
 
 	// ----------------------------------------
 	// 例外処理
 	// ----------------------------------------
 	}else{
+
+		// メッセージ定義：処理なし
 		set_snd_none_mes(tmp_snd_mes);
+
 	}
 }
 
@@ -1254,6 +1289,29 @@ void set_snd_none_mes(char *tmp_snd_mes){
 // 表示処理：pinfoアクション
 /* ---------------------------------------------------------------------------------------------- */
 void print_pinfo_act(struct MJSPlyInfo *pinfo){
+
+	// アクション表示
+	printf("================\n");
+	if(pinfo->ply_act == ACTTSUMOAGARI){
+		printf("アクション：自摸和了\n");
+	}else if(pinfo->ply_act == ACTSUTE){
+		printf("アクション：捨牌　　\n");
+	}else if(pinfo->ply_act == ACTTSUMOGIRI){
+		printf("アクション：自摸切り\n");
+	}else if(pinfo->ply_act == ACTANKAN){
+		printf("アクション：暗槓　　\n");
+	}else if(pinfo->ply_act == ACTKAKAN){
+		printf("アクション：加槓　　\n");
+	}else if(pinfo->ply_act == ACTRIICH){
+		printf("アクション：リーチ　\n");
+	}else{
+		printf("アクション：不明　　\n");
+	}
+
+	// 牌情報
+	printf("pinfo->act_hai = %d\n", pinfo->act_hai);
+	printf("pinfo->act_idx = %d\n", pinfo->act_idx);
+	printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
 
 }
 

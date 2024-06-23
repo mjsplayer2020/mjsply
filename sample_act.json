@@ -1,0 +1,6 @@
+{"type":"start_kyoku","bakaze":"E","kyoku":1,"honba":0,"kyotaku":0,"oya":0,"dora_marker":"7s","tehais":[["?","?","?","?","?","?","?","?","?","?","?","?","?"],["1s","2s","3s","4s","5sr","6s","7s","8s","9s,"1s","1s","9s","9s"],["?","?","?","?","?","?","?","?","?","?","?","?","?"],["?","?","?","?","?","?","?","?","?","?","?","?","?"]]}
+{"type":"tsumo","actor":1,"pai":"5mr"}
+{"type":"reach","actor":1}
+{"type":"dahai","actor":1,"pai":"5mr","tsumogiri":false}
+{"type":"tsumo","actor":2,"pai":"?"}
+{"type":"dahai","actor":2,"pai":"5sr","tsumogiri":false}
