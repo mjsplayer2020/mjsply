@@ -409,7 +409,8 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_type_tsumo(cli, pinfo, tmp_snd_mes, tmp_i);
 
 				// possible_actionsの値を確認するためにbreakで抜けない
-				// break;
+				// → メッセージ確定のために処理抜け
+				break;
 
 			// -----------------------
 			// リーチアクション
@@ -472,7 +473,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			         strcmp(cli->wk_str[tmp_i+1], "pon" ) == 0 ){
 
 				// アクション設定
-				// Set_type_pon(tk,gui, tmp_i);
+				set_type_pon(cli, pinfo, tmp_snd_mes, tmp_i);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -487,7 +488,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			         strcmp(cli->wk_str[tmp_i+1], "chi" ) == 0 ){
 
 				// アクション設定
-				// Set_type_chi(tk,gui, tmp_i);
+				set_type_chi(cli, pinfo, tmp_snd_mes, tmp_i);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -796,17 +797,7 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		// ----------------------------------------
 		// ply関数処理(自摸後アクション)
 		// ----------------------------------------
-
-		// 暗槓
-		if(pinfo->ply_act == ACTANKAN){
-			PlyActAnkan(pinfo->act_idx);
-		// 捨牌
-		}else if(pinfo->ply_act == ACTSUTE){
-			PlyActTsumoSute();
-		// 自摸切り
-		}else if(pinfo->ply_act == ACTTSUMOGIRI){
-			PlyActTsumoSute();
-		}
+		set_post_tsumo_act(pinfo);
 
 	// ----------------------------------------
 	// 自摸プレーヤがCOMならば
@@ -817,6 +808,27 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		set_snd_none_mes(tmp_snd_mes);
 
 	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 自摸後アクション(ply関数向け)
+/* ---------------------------------------------------------------------------------------------- */
+void set_post_tsumo_act(struct MJSPlyInfo *pinfo){
+
+		// 暗槓
+		if(pinfo->ply_act == ACTANKAN){
+			PlyActAnkan(pinfo->act_idx);
+		// 加槓
+		}else if(pinfo->ply_act == ACTKAKAN){
+			PlyActKakan(pinfo->act_idx, pinfo->act_aka_count);
+		// 捨牌
+		}else if(pinfo->ply_act == ACTSUTE){
+			PlyActTsumoSute();
+		// 自摸切り
+		}else if(pinfo->ply_act == ACTTSUMOGIRI){
+			PlyActTsumoSute();
+		}
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -843,20 +855,8 @@ void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_
 		// ----------------------------------------
 		// pinfo結果表示
 		// ----------------------------------------
-/*
-		// 結果表示
-		printf("================\n");
-		if(pinfo->ply_act == ACTSUTE){
-			printf("アクション：捨牌　　\n");
-		}else if(pinfo->ply_act == ACTTSUMOGIRI){
-			printf("アクション：自摸切り\n");
-		}else{
-			printf("アクション：不明　　\n");
-		}
+		print_pinfo_act(pinfo);
 
-		printf("pinfo->act_hai = %d\n", pinfo->act_hai);
-		printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
-*/
 		// ----------------------------------------
 		// メッセージ定義
 		// ----------------------------------------
@@ -866,9 +866,10 @@ void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_
 		// ply関数処理(自摸後アクション)
 		// ----------------------------------------
 
-		// 自摸和了
+		// 捨牌
 		if(pinfo->ply_act == ACTSUTE){
 			PlyActTsumoSute();
+		// 自摸切り
 		}else if(pinfo->ply_act == ACTTSUMOGIRI){
 			PlyActTsumoSute();
 		}
@@ -932,29 +933,27 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		// ----------------------------------------
 		// pinfo結果表示
 		// ----------------------------------------
-/*
-		// 結果表示
-		printf("================\n");
-		if(pinfo->ply_act == ACTNONAKI){
-			printf("アクション：鳴き無し\n");
-		}else if(pinfo->ply_act == ACTRON){
-			printf("アクション：ロン和了\n");
-		}else if(pinfo->ply_act == ACTTSUMOGIRI){
-			printf("アクション：自摸切り\n");
-		}else{
-			printf("アクション：不明　　\n");
-		}
+		print_pinfo_act(pinfo);
 
-		printf("pinfo->act_hai = %d\n", pinfo->act_hai);
-		printf("pinfo->act_idx = %d\n", pinfo->act_idx);
-		printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
-*/
 		// ----------------------------------------
 		// メッセージ定義
 		// ----------------------------------------
 		set_naki_act_mes(pinfo, tmp_snd_mes, tmp_ply_sute_id);
 
 	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// typeごとでの値設定(pon)
+/* ---------------------------------------------------------------------------------------------- */
+void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num){
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// typeごとでの値設定(chi)
+/* ---------------------------------------------------------------------------------------------- */
+void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num){
 
 }
 
@@ -1026,6 +1025,18 @@ void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
 
 		// メッセージ定義：暗槓
 		set_snd_ankan_mes(tmp_snd_mes, pinfo->act_idx, pinfo->act_aka_count);
+
+	// ----------------------------------------
+	// 加槓アクション
+	// ----------------------------------------
+	}else if(pinfo->ply_act == ACTKAKAN){
+
+		// メッセージ定義：加槓
+		if(pinfo->act_aka_count > 0){
+			set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, true, 0);
+		}else{
+			set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, false, 1);
+		}
 
 	// ----------------------------------------
 	// 例外処理
@@ -1298,12 +1309,20 @@ void print_pinfo_act(struct MJSPlyInfo *pinfo){
 		printf("アクション：捨牌　　\n");
 	}else if(pinfo->ply_act == ACTTSUMOGIRI){
 		printf("アクション：自摸切り\n");
+	}else if(pinfo->ply_act == ACTRIICH){
+		printf("アクション：リーチ　\n");
 	}else if(pinfo->ply_act == ACTANKAN){
 		printf("アクション：暗槓　　\n");
 	}else if(pinfo->ply_act == ACTKAKAN){
 		printf("アクション：加槓　　\n");
-	}else if(pinfo->ply_act == ACTRIICH){
-		printf("アクション：リーチ　\n");
+	}else if(pinfo->ply_act == ACTNONAKI){
+		printf("アクション：鳴き無し\n");
+	}else if(pinfo->ply_act == ACTRON){
+		printf("アクション：ロン和了\n");
+	}else if(pinfo->ply_act == ACTPON){
+		printf("アクション：ポン\n");
+	}else if(pinfo->ply_act == ACTCHI){
+		printf("アクション：チー\n");
 	}else{
 		printf("アクション：不明　　\n");
 	}

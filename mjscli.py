@@ -27,7 +27,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 res = s.recv(1024).decode("utf-8")
 print("=============")
 print(res)
-s.send(b"{\"type\":\"join\",\"name\":\"tampopo\",\"room\":\"default\"}\n")
+s.send(b"{\"type\":\"join\",\"name\":\"mjsply\",\"room\":\"default\"}\n")
 
 # メッセージ送受信
 while True:

@@ -30,7 +30,7 @@
 #define VER2    0             // 2桁目のバージョン(ソース全体の改変があった場合(一から作り直した場合)、互換性なし)
 #define VER3    1             // 3桁目のバージョン(新機能の追加した場合、又は既存ソースからフォークした場合、互換性あり)
 #define VER4    0             // 4桁目のバージョン(雑多な細かい更新があった場合、互換性あり)
-#define VER5    9             // 5桁目のバージョン(内部管理用、公開時は常に0とする、互換性あり)
+#define VER5   10             // 5桁目のバージョン(内部管理用、公開時は常に0とする、互換性あり)
 
 /* ---------------------------------------------------------------------------------------------- */
 // 変数定義
@@ -88,6 +88,11 @@ struct MJSClient{
 	void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 自摸時処理
 	void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);     // リーチ時処理
 	void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
+	void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
+	void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
+
+	// 自摸後アクション(ply関数向け)
+	void set_post_tsumo_act(struct MJSPlyInfo *pinfo);
 
 	// -----------------------------
 	// メッセージ定義

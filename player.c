@@ -28,7 +28,7 @@ void print_tehai_line(){
 void print_tehai_hist(){
 
 	printf("================\n");
-	for(int tmp_i=0; tmp_i < 38; tmp_i++){
+	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
 		printf("%d ", tehai[tmp_i]);
 		if(tmp_i==0 || tmp_i==10 || tmp_i==20 || tmp_i==30 || tmp_i==37){
 			printf("\n");
@@ -54,9 +54,15 @@ void print_tehai_aka(){
 /* ---------------------------------------------------------------------------------------------- */
 void print_tsumoari_tehai_info(){
 
-	// 自摸あり表記
+	// 自摸有り表記
 	printf("================\n");
 	printf("手牌情報：自摸有り\n");
+
+	// 有効牌
+	printf("向聴数%d枚\n"  , shanten_normal);
+	printf("頭枚数%d枚\n"  , atama_count);
+	printf("メンツ数%d枚\n", mentu_count);
+	printf("ターツ数%d枚\n", taatu_count);
 
 	// 捨牌候補数
 	printf("捨牌候補%d種\n", sutekoho_count);
@@ -70,12 +76,6 @@ void print_tsumoari_tehai_info(){
 	printf("---\n");
 	printf("最終捨牌候補：No.%d：牌%2d\n", fixed_sutekoho_num+1, sutekoho_hai[fixed_sutekoho_num]);
 	// dparts->DispHai( SPACE_XSIZE+80, PLY_YSTART+380, sutekoho_hai[fixed_sutekoho_num], false, false, 0, 0);
-
-	// 手牌ヒストグラム表示
-	print_tehai_hist();
-
-	// 赤牌情報
-	print_tehai_aka();
 
 /*
 	// アクション表示
@@ -151,8 +151,8 @@ void print_tsumonashi_tehai_info(){
 	printf("================\n");
 	printf("手牌情報：自摸無し\n");
 
-
 	// 有効牌
+	printf("向聴数%d枚\n"  , shanten_normal);
 	printf("頭枚数%d枚\n"  , atama_count);
 	printf("メンツ数%d枚\n", mentu_count);
 	printf("ターツ数%d枚\n", taatu_count);
@@ -310,10 +310,10 @@ void PlyActTakuStart(int tmp_ply_num){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-/*	printf("================\n");
+	printf("================\n");
 	printf("ply_num = %d\n", ply_num);
 	printf("ply_num_shimo = %d\n", ply_num_shimo);
-*/
+
 
 }
 
@@ -378,11 +378,11 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-/*	printf("================\n");
+	printf("================\n");
 	printf("ie = %d\n", ie);
 	printf("ply_bakaze = %d\n", ply_bakaze);
 	printf("ply_zikaze = %d\n", ply_zikaze);
-*/
+
 
 }
 
@@ -402,7 +402,7 @@ void PlyActHaipai(int tmp_tsumo_hai, bool tmp_tsumo_aka){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-/*
+
 	printf("---\n");
 	printf("tmp_tsumo_hai = %d\n", tmp_tsumo_hai);
 	if(tmp_tsumo_aka==true){
@@ -410,7 +410,7 @@ void PlyActHaipai(int tmp_tsumo_hai, bool tmp_tsumo_aka){
 	}else{
 		printf("tmp_tsumo_aka = false\n");
 	}
-*/
+
 
 }
 
@@ -433,13 +433,13 @@ void PlyActPostHaipai(){
 	// ----------------------------------------
 
 	// 手牌ヒストグラム表示
-	// print_tehai_hist();
+	print_tehai_hist();
 
 	// 赤牌情報
-	// print_tehai_aka();
+	print_tehai_aka();
 
 	// 自摸無し手牌詳細情報
-	// print_tsumonashi_tehai_info();
+	print_tsumonashi_tehai_info();
 
 }
 
@@ -459,6 +459,22 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 	ply_tsumo_hai = tmp_tsumo_hai;
 	ply_tsumo_aka = tmp_tsumo_aka;
 
+	// 手牌ヒストグラム表示
+	print_tehai_hist();
+
+	// 赤牌情報
+	print_tehai_aka();
+
+	// 自摸牌
+	printf("自摸牌%2d\n", ply_tsumo_hai);
+
+	// 赤牌
+	if(ply_tsumo_aka==true){
+		printf("ply_tsumo_aka = true\n");
+	}else{
+		printf("ply_tsumo_aka = false\n");
+	}
+
 	// 自摸有の向聴算出
 	ChkTsumoAriShanten();
 
@@ -467,10 +483,7 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 	// ----------------------------------------
 
 	// 自摸有り手牌情報詳細
-	// print_tsumoari_tehai_info();
-
-	// 自摸牌
-	// printf("自摸牌%2d\n", tmp_tsumo_hai);
+	print_tsumoari_tehai_info();
 
 	// ----------------------------------------
 	// 自摸和了確認
@@ -537,7 +550,7 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 		// 牌INDEXの定義
 		pinfo->act_idx = ply_tsumo_hai;
 
-		// 赤牌判定
+		// 赤牌設定
 		if(ply_tsumo_aka == true){
 			pinfo->act_aka_count = 1;
 		}else{
@@ -556,8 +569,27 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 		// 牌INDEXの定義
 		pinfo->act_idx = ply_naki_idx;
 
-		// 赤牌枚数
+		// 赤牌設定
 		pinfo->act_aka_count = 1;
+
+	// 加槓の場合
+	}else if( ply_act == ACTKAKAN){
+
+		// アクション定義
+		pinfo->ply_act = ply_act;
+
+		// アクション牌の定義(自摸牌)
+		pinfo->act_hai = ply_naki_idx;
+
+		// 牌INDEXの定義
+		pinfo->act_idx = ply_naki_idx;
+
+		// 赤牌設定
+		if(ply_tsumo_aka == true){
+			pinfo->act_aka_count = 1;
+		}else{
+			pinfo->act_aka_count = 0;
+		}
 
 	// その他の場合(捨牌、自摸切り)
 	}else{
@@ -571,7 +603,7 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 		// 牌INDEXの定義
 		pinfo->act_idx = ply_sute_hai;
 
-		// 赤牌判定
+		// 赤牌設定
 		if(ply_sute_aka == true){
 			pinfo->act_aka_count = 1;
 		}else{
@@ -799,6 +831,10 @@ void PlyActKakan(int tmp_naki_hai, int tmp_naki_aka_count){
 /* ---------------------------------------------------------------------------------------------- */
 void PlyActTsumoSute(){
 
+	// ----------------------------------------
+	// 捨牌後処理
+	// ----------------------------------------
+
 	// プレーヤー手牌ヒストグラムの更新
 	PlySetTsumoSuteTehaiHist();
 
@@ -808,14 +844,18 @@ void PlyActTsumoSute(){
 	// プレーヤー鳴きテーブルの更新
 	PlyChkNakitbl();
 
+	// ----------------------------------------
+	// 結果表示
+	// ----------------------------------------
+
 	// 手牌ヒストグラム表示
-	// print_tehai_hist();
+	print_tehai_hist();
 
 	// 赤牌情報
-	// print_tehai_aka();
+	print_tehai_aka();
 
 	// 自摸無し手牌詳細情報
-	// print_tsumonashi_tehai_info();
+	print_tsumonashi_tehai_info();
 
 }
 
