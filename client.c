@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.9(暗槓処理実装)
+ * バージョン     ： 0.0.1.0.11(チーポン処理準備)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/23 10:53:04
+ * 最終更新日     ： 2024/06/29 15:53:39
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -108,7 +108,7 @@ int get_hainum(char hai_str[]){
 	// 2文字目
 	// ----------------------------------------
 
-	if( hai_str[1] != '\0'){	
+	if( hai_str[1] != '\0'){
 
 		tmp_str[0] = hai_str[1];
 		tmp_str[1] = '\0';
@@ -475,9 +475,6 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				// アクション設定
 				set_type_pon(cli, pinfo, tmp_snd_mes, tmp_i);
 
-				// type_noneメッセージの設定
-				set_snd_none_mes(tmp_snd_mes);
-
 				// メッセージ確定のために処理抜け
 				break;
 
@@ -489,9 +486,6 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 
 				// アクション設定
 				set_type_chi(cli, pinfo, tmp_snd_mes, tmp_i);
-
-				// type_noneメッセージの設定
-				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
 				break;
@@ -936,7 +930,7 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		print_pinfo_act(pinfo);
 
 		// ----------------------------------------
-		// メッセージ定義
+		// メッセージ定義：鳴き確認(捨牌確認)
 		// ----------------------------------------
 		set_naki_act_mes(pinfo, tmp_snd_mes, tmp_ply_sute_id);
 
@@ -948,12 +942,236 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 /* ---------------------------------------------------------------------------------------------- */
 void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num){
 
+	// ----------------------------------------
+	// 初期化
+	// ----------------------------------------
+
+	int tmp_naki_ply_id;
+	// int tmp_target_ply_id;
+
+	int  tmp_naki_hai  = 0;
+	int  tmp_aka_count = 0;
+
+	// ----------------------------------------
+	// REACTプレーヤー(targetプレーヤー)の特定
+	// ----------------------------------------
+
+	// プレーヤーID確認
+	tmp_naki_ply_id  = atoi(cli->wk_str[tmp_wk_num+3]);
+	// tmp_target_ply_id = atoi(cli->wk_str[tmp_wk_num+5]);
+
+	// ----------------------------------------
+	// 鳴きプレーヤが自分ならば
+	// ----------------------------------------
+	if( ply_id == tmp_naki_ply_id ){
+
+		// ----------------------------------------
+		// ポン牌確認(捨牌)
+		// ----------------------------------------
+
+		// 手牌読込
+		tmp_naki_hai = get_hainum(cli->wk_str[tmp_wk_num+7]);
+		// 赤牌確認
+		if (tmp_naki_hai > 100){
+			tmp_naki_hai = tmp_naki_hai - 100;
+			tmp_aka_count++;
+		}
+
+		// ----------------------------------------
+		// 手牌確認(1枚目)
+		// ----------------------------------------
+
+		// 手牌読込
+		tmp_naki_hai = get_hainum(cli->wk_str[tmp_wk_num+9]);
+		// 赤牌確認
+		if (tmp_naki_hai > 100){
+			tmp_naki_hai = tmp_naki_hai - 100;
+			tmp_aka_count++;
+		}
+
+		// ----------------------------------------
+		// 手牌確認(2枚目)
+		// ----------------------------------------
+
+		// 手牌読込
+		tmp_naki_hai = get_hainum(cli->wk_str[tmp_wk_num+10]);
+		// 赤牌確認
+		if (tmp_naki_hai > 100){
+			tmp_naki_hai = tmp_naki_hai - 100;
+			tmp_aka_count++;
+		}
+
+		// ----------------------------------------
+		// ply関数処理(ポン処理)
+		// ----------------------------------------
+
+		// 鳴きアクション処理
+		PlyActNaki( pinfo,                        // 捨て牌アクション定義
+	                tmp_naki_ply_id,              // 鳴きプレーヤ
+	                ACTPON,                       // 鳴きアクション種別
+	                tmp_naki_hai,                 // 鳴き牌
+	                tmp_naki_hai,                 // 鳴き面子(チー面子)の頭牌
+	                tmp_aka_count);               // 鳴き面子の赤牌枚数
+
+		// ----------------------------------------
+		// pinfo結果表示
+		// ----------------------------------------
+		print_pinfo_act(pinfo);
+
+		// ----------------------------------------
+		// 鳴き捨牌アクション
+		// ----------------------------------------
+		PlyActNakiSute();
+
+		// ----------------------------------------
+		// 捨牌メッセージの定義
+		// ----------------------------------------
+
+		// メッセージ定義：鳴き捨牌
+		if( pinfo->act_aka_count > 0){
+			set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, true, false); 
+		}else{
+			set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, false, false); 
+		}
+
+	// ----------------------------------------
+	// 自摸プレーヤがCOMならば
+	// ----------------------------------------
+	}else{
+
+		// メッセージ定義：処理なし
+		set_snd_none_mes(tmp_snd_mes);
+
+	}
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 // typeごとでの値設定(chi)
 /* ---------------------------------------------------------------------------------------------- */
 void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num){
+
+	// ----------------------------------------
+	// 初期化
+	// ----------------------------------------
+
+	int tmp_naki_ply_id;
+	// int tmp_target_ply_id;
+
+	int  tmp_naki_hai = 0;
+	// bool tmp_naki_aka = false ;
+	int  tmp_aka_count = 0;
+
+	int tmp_naki_tehai_hai1 = 0;
+	int tmp_naki_tehai_hai2 = 0;
+	int tmp_hai = 0;
+	int tmp_chi_idx = 0;
+
+	// ----------------------------------------
+	// REACTプレーヤー(targetプレーヤー)の特定
+	// ----------------------------------------
+
+	// プレーヤーID確認
+	tmp_naki_ply_id  = atoi(cli->wk_str[tmp_wk_num+3]);
+	// tmp_target_ply_id = atoi(cli->wk_str[tmp_wk_num+5]);
+
+	// ----------------------------------------
+	// 鳴きプレーヤが自分ならば
+	// ----------------------------------------
+	if( ply_id == tmp_naki_ply_id ){
+
+		// ----------------------------------------
+		// チー牌確認(捨牌)
+		// ----------------------------------------
+		tmp_naki_hai = get_hainum(cli->wk_str[tmp_wk_num+7]);
+		if (tmp_naki_hai > 100){
+			tmp_naki_hai = tmp_naki_hai - 100;
+			// tmp_naki_aka = true ;
+			tmp_aka_count++;
+		}
+
+		// ----------------------------------------
+		// チー構成牌(1枚目)
+		// ----------------------------------------
+		tmp_naki_tehai_hai1 = get_hainum(cli->wk_str[tmp_wk_num+9]);
+		if (tmp_naki_tehai_hai1 > 100){
+			tmp_naki_tehai_hai1 = tmp_naki_tehai_hai1 - 100;
+			tmp_aka_count++;
+		}
+
+		// ----------------------------------------
+		// チー構成牌(2枚目)
+		// ----------------------------------------
+		tmp_naki_tehai_hai2 = get_hainum(cli->wk_str[tmp_wk_num+10]);
+		if (tmp_naki_tehai_hai2 > 100){
+			tmp_naki_tehai_hai2 = tmp_naki_tehai_hai2 - 100;
+			tmp_aka_count++;
+		}
+
+		// ----------------------------------------
+		// チーINDEX牌算出
+		// ----------------------------------------
+
+		// 1枚目2枚目の大小比較・交換
+		if(tmp_naki_tehai_hai1 > tmp_naki_tehai_hai2){
+			tmp_hai = tmp_naki_tehai_hai1;
+			tmp_naki_tehai_hai1 = tmp_naki_tehai_hai2;
+			tmp_naki_tehai_hai2 = tmp_hai;
+		}
+
+		// チーINDEX牌を算出
+		if (tmp_naki_tehai_hai1 == tmp_naki_hai - 2 ){
+			tmp_chi_idx = tmp_naki_tehai_hai1;
+		}else if (tmp_naki_tehai_hai1 == tmp_naki_hai - 1 ){
+			tmp_chi_idx = tmp_naki_tehai_hai1;
+		}else if (tmp_naki_tehai_hai1 == tmp_naki_hai + 1 ){
+			tmp_chi_idx = tmp_naki_hai;
+		}else {
+			tmp_chi_idx = 0;
+		}
+
+		// ----------------------------------------
+		// ply関数処理(チー処理)
+		// ----------------------------------------
+
+		// 鳴きアクション処理
+		PlyActNaki( pinfo,                        // 捨て牌アクション定義
+	                tmp_naki_ply_id,              // 鳴きプレーヤ
+	                ACTCHI,                       // 鳴きアクション種別
+	                tmp_naki_hai,                 // 鳴き牌
+	                tmp_chi_idx,                  // 鳴き面子(チー面子)の頭牌
+	                tmp_aka_count);               // 鳴き面子の赤牌枚数
+
+		// ----------------------------------------
+		// pinfo結果表示
+		// ----------------------------------------
+		print_pinfo_act(pinfo);
+
+		// ----------------------------------------
+		// 鳴き捨牌アクション
+		// ----------------------------------------
+		PlyActNakiSute();
+
+		// ----------------------------------------
+		// 捨牌メッセージの定義
+		// ----------------------------------------
+
+		// メッセージ定義：鳴き捨牌
+		if( pinfo->act_aka_count > 0){
+			set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, true, false); 
+		}else{
+			set_snd_dahai_mes(tmp_snd_mes, pinfo->act_hai, false, false); 
+		}
+
+	// ----------------------------------------
+	// 自摸プレーヤがCOMならば
+	// ----------------------------------------
+	}else{
+
+		// メッセージ定義：処理なし
+		set_snd_none_mes(tmp_snd_mes);
+
+	}
 
 }
 
@@ -1061,6 +1279,22 @@ void set_naki_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_ply_s
 
 		// ロン和了
 		set_snd_hora_mes(tmp_snd_mes, tmp_ply_sute_id, cli_sute_hai, cli_sute_aka);
+
+	// ----------------------------------------
+	// 例外処理
+	// ----------------------------------------
+	}else if(pinfo->ply_act == ACTPON){
+
+		// ポン
+		set_snd_pon_mes(tmp_snd_mes, tmp_ply_sute_id, cli_sute_hai, cli_sute_aka, pinfo->act_aka_count);
+
+	// ----------------------------------------
+	// 例外処理
+	// ----------------------------------------
+	}else if(pinfo->ply_act == ACTCHI){
+
+		// チー
+		set_snd_chi_mes(tmp_snd_mes, tmp_ply_sute_id, cli_sute_hai, cli_sute_aka, pinfo->act_idx, pinfo->act_aka_count);
 
 	// ----------------------------------------
 	// 例外処理
@@ -1309,6 +1543,8 @@ void print_pinfo_act(struct MJSPlyInfo *pinfo){
 		printf("アクション：捨牌　　\n");
 	}else if(pinfo->ply_act == ACTTSUMOGIRI){
 		printf("アクション：自摸切り\n");
+	}else if(pinfo->ply_act == ACTNAKISUTE){
+		printf("アクション：鳴き捨牌\n");
 	}else if(pinfo->ply_act == ACTRIICH){
 		printf("アクション：リーチ　\n");
 	}else if(pinfo->ply_act == ACTANKAN){

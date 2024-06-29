@@ -1,300 +1,19 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.9(暗槓処理実装)
+ * バージョン     ： 0.0.1.0.11(チーポン処理準備)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/23 10:53:04
+ * 最終更新日     ： 2024/06/29 15:53:39
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
  * ---------------------------------------------------------------------------------------------- */
 
 #include "player.h"
-
-/* ---------------------------------------------------------------------------------------------- */
-// ライン手牌情報表示
-/* ---------------------------------------------------------------------------------------------- */
-void print_tehai_line(){
-
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-// ヒストグラム手牌情報表示
-/* ---------------------------------------------------------------------------------------------- */
-void print_tehai_hist(){
-
-	printf("================\n");
-	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
-		printf("%d ", tehai[tmp_i]);
-		if(tmp_i==0 || tmp_i==10 || tmp_i==20 || tmp_i==30 || tmp_i==37){
-			printf("\n");
-		}
-	}
-
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-// ライン手牌情報表示
-/* ---------------------------------------------------------------------------------------------- */
-void print_tehai_aka(){
-
-	printf("================\n");
-	for(int tmp_i=0; tmp_i < 3; tmp_i++){
-		printf("aka_count[%d] = %d\n", tmp_i, aka_count[tmp_i]);
-	}
-
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-// 自摸有り手牌情報
-/* ---------------------------------------------------------------------------------------------- */
-void print_tsumoari_tehai_info(){
-
-	// 自摸有り表記
-	printf("================\n");
-	printf("手牌情報：自摸有り\n");
-
-	// 有効牌
-	printf("向聴数%d枚\n"  , shanten_normal);
-	printf("頭枚数%d枚\n"  , atama_count);
-	printf("メンツ数%d枚\n", mentu_count);
-	printf("ターツ数%d枚\n", taatu_count);
-
-	// 捨牌候補数
-	printf("捨牌候補%d種\n", sutekoho_count);
-
-	// 一覧表示
-	for(int tmp_i = 0; tmp_i < sutekoho_count; tmp_i++){
-		print_sutekoho(tmp_i);
-	}
-
-	// 最終捨牌候補
-	printf("---\n");
-	printf("最終捨牌候補：No.%d：牌%2d\n", fixed_sutekoho_num+1, sutekoho_hai[fixed_sutekoho_num]);
-	// dparts->DispHai( SPACE_XSIZE+80, PLY_YSTART+380, sutekoho_hai[fixed_sutekoho_num], false, false, 0, 0);
-
-/*
-	// アクション表示
-	if( ply_act == ACTSUTE){
-		sprintf(tmp_disp_msg, "捨牌　　");
-
-		// 牌表示
-		if(ply_sute_aka == true){
-			dparts->DispHai( 270, PLY_YSTART+380, ply_sute_hai, true, false, 0, 0);
-		}else{
-			dparts->DispHai( 270, PLY_YSTART+380, ply_sute_hai, false, false, 0, 0);
-		}
-
-	}else if(ply_act == ACTTSUMOGIRI){
-
-		// アクション表示
-		printf(tmp_disp_msg, "自摸切り");
-
-		// 牌表示
-		if(ply_sute_aka == true){
-		dparts->DispHai( 270, PLY_YSTART+380, ply_sute_hai, true, false, 0, 0);
-		}else{
-		dparts->DispHai( 270, PLY_YSTART+380, ply_sute_hai, false, false, 0, 0);
-		}
-
-	}else if(ply_act == ACTNAKISUTE){
-
-		// アクション表示
-		printf(tmp_disp_msg, "鳴き捨て");
-
-		// 牌表示
-		if(ply_sute_aka == true){
-		dparts->DispHai( 270, PLY_YSTART+380, ply_sute_hai, true, false, 0, 0);
-		}else{
-		dparts->DispHai( 270, PLY_YSTART+380, ply_sute_hai, false, false, 0, 0);
-		}
-
-	}else if(ply_act == ACTRIICH){
-		printf(tmp_disp_msg, "リーチ　");
-
-	}else if(ply_act == ACTANKAN){
-
-		// アクション表示
-		printf(tmp_disp_msg, "暗槓　　");
-
-		// 牌表示
-		dparts->DispHai( 270, PLY_YSTART+380, ply_naki_idx, false, false, 0, 0);
-
-	}else if(ply_act == ACTKAKAN){
-
-		// アクション表示
-		printf(tmp_disp_msg, "加槓　　");
-
-		// 牌表示
-		dparts->DispHai( 270, PLY_YSTART+380, ply_naki_idx, false, false, 0, 0);
-
-	}else{
-		printf(tmp_disp_msg, "不明　　");
-	}
-
-	// アクション表示
-	printf(150, PLY_YSTART+400"Act：%s", tmp_disp_msg);
-*/
-
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-// 自摸無し手牌情報
-/* ---------------------------------------------------------------------------------------------- */
-void print_tsumonashi_tehai_info(){
-
-	// 自摸あり表記
-	printf("================\n");
-	printf("手牌情報：自摸無し\n");
-
-	// 有効牌
-	printf("向聴数%d枚\n"  , shanten_normal);
-	printf("頭枚数%d枚\n"  , atama_count);
-	printf("メンツ数%d枚\n", mentu_count);
-	printf("ターツ数%d枚\n", taatu_count);
-
-	// 萬子
-	printf("m ");
-	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
-		if(yuko_hai_13mai[tmp_j+1] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-	printf("\n");
-
-	// 筒子
-	printf("p ");
-	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
-		if(yuko_hai_13mai[tmp_j+11] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-	printf("\n");
-
-	// 索子
-	printf("s ");
-	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
-		if(yuko_hai_13mai[tmp_j+21] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-	printf("\n");
-
-	// 字牌
-	printf("z ");
-	for(int tmp_j = 0; tmp_j < 7; tmp_j++){
-		if(yuko_hai_13mai[tmp_j+31] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-	printf("\n");
-
-	// 鳴き情報
-	printf("鳴き候補枚数%d枚\n", nakikoho_tbl_count);
-
-	// 鳴きテーブル情報
-	for(int tmp_i = 0; tmp_i < nakikoho_tbl_count; tmp_i++){
-
-		// 1段目・牌番号
-		printf("%d:牌%d,IDX%d\n", tmp_i+1, nakikoho_tbl_hai[tmp_i], nakikoho_tbl_idx[tmp_i]);
-
-		// 2段目・アクション
-		if( nakikoho_tbl_act[tmp_i] == ACTRON){
-			printf("Act:ロン");
-		}else if( nakikoho_tbl_act[tmp_i] == ACTPON){
-			printf("Act:ポン");
-		}else if( nakikoho_tbl_act[tmp_i] == ACTCHI){
-			printf("Act:チー");
-		}else{
-			printf("Act:不明");
-		}
-
-		// 3段目・鳴きの有無
-		if( nakikoho_tbl_yesno[tmp_i] == true){
-			printf("鳴有");
-		}else{
-			printf("鳴無");
-		}
-
-		// 改行
-		printf("\n");
-
-	}
-
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-// 捨牌候補情報
-/* ---------------------------------------------------------------------------------------------- */
-void print_sutekoho(int sutenum){
-
-	// パーツ表示(候補牌)
-	// dparts->DispHai(x, y+30, sutekoho_hai[sutenum], false, false, 0, 0);
-	printf("捨牌候補%2d：牌%2d　：", sutenum+1, sutekoho_hai[sutenum]);
-
-	// 候補数表示
-	printf("%d向%2d種%2d枚ポインタ%d　：", 
-		sutekoho_shanten[sutenum], 
-		yuko_haishu_count[sutenum],
-		yuko_hai_count[sutenum],
-		sutekoho_priority[sutenum]);
-
-	// 候補牌 - 萬子
-	printf("m ");
-	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
-		if(yuko_hai[sutenum][tmp_j+1] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-
-	// 候補牌 - 筒子
-	printf("p ");
-	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
-		if(yuko_hai[sutenum][tmp_j+11] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-
-	// 候補牌 - 索子
-	printf("s ");
-	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
-		if(yuko_hai[sutenum][tmp_j+21] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-
-	// 候補牌 - 字牌
-	printf("z");
-	for(int tmp_j = 0; tmp_j < 7; tmp_j++){
-		if(yuko_hai[sutenum][tmp_j+31] == true){
-			printf("%d",tmp_j+1);
-		}else{
-			printf(" ");
-		}
-	}
-
-	// 改行
-	printf("\n");
-
-}
 
 /* ---------------------------------------------------------------------------------------------- */
 // 卓開始処理
@@ -307,13 +26,19 @@ void PlyActTakuStart(int tmp_ply_num){
 	// 下家のプレーヤ番号を設定
 	ply_num_shimo = ( tmp_ply_num + 3 ) % 4;
 
+	// -----------------------------
+	// 結果表示のモード設定
+	// -----------------------------
+	print_pinfo_mode = 1;
+
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
+/*
 	printf("================\n");
 	printf("ply_num = %d\n", ply_num);
 	printf("ply_num_shimo = %d\n", ply_num_shimo);
-
+*/
 
 }
 
@@ -378,11 +103,12 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
+/*
 	printf("================\n");
 	printf("ie = %d\n", ie);
 	printf("ply_bakaze = %d\n", ply_bakaze);
 	printf("ply_zikaze = %d\n", ply_zikaze);
-
+*/
 
 }
 
@@ -402,7 +128,7 @@ void PlyActHaipai(int tmp_tsumo_hai, bool tmp_tsumo_aka){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-
+/*
 	printf("---\n");
 	printf("tmp_tsumo_hai = %d\n", tmp_tsumo_hai);
 	if(tmp_tsumo_aka==true){
@@ -410,7 +136,7 @@ void PlyActHaipai(int tmp_tsumo_hai, bool tmp_tsumo_aka){
 	}else{
 		printf("tmp_tsumo_aka = false\n");
 	}
-
+*/
 
 }
 
@@ -1080,7 +806,7 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai){
 	// pinfo定義
 	// ----------------------------------------
 
-	// 自摸和了の場合
+	// ロン和了の場合
 	if ( ply_act == ACTRON){
 
 		// アクション定義
@@ -1088,6 +814,36 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai){
 
 		// アクション牌の定義(鳴きINDEX牌)
 		pinfo->act_hai = ply_naki_idx;
+
+		// 牌INDEXの定義
+		pinfo->act_idx = ply_naki_idx;
+
+		// 赤牌判定
+		pinfo->act_aka_count = ply_naki_aka_count;
+
+	// ポンの場合
+	}else if( ply_act == ACTPON){
+
+		// アクション定義
+		pinfo->ply_act = ply_act;
+
+		// アクション牌の定義(鳴きINDEX牌)
+		pinfo->act_hai = ply_naki_idx;
+
+		// 牌INDEXの定義
+		pinfo->act_idx = ply_naki_idx;
+
+		// 赤牌判定
+		pinfo->act_aka_count = ply_naki_aka_count;
+
+	// チーの場合
+	}else if( ply_act == ACTCHI){
+
+		// アクション定義
+		pinfo->ply_act = ply_act;
+
+		// アクション牌の定義(鳴きINDEX牌)
+		pinfo->act_hai = hai;
 
 		// 牌INDEXの定義
 		pinfo->act_idx = ply_naki_idx;
@@ -1116,7 +872,7 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai){
 /* ---------------------------------------------------------------------------------------------- */
 // 鳴きアクション
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActNaki(int naki_ply_num, LBPAct naki_ply_act, int hai, int chi_hai_idx, int naki_aka_count){
+void PlyActNaki(struct MJSPlyInfo *pinfo, int naki_ply_num, LBPAct naki_ply_act, int hai, int chi_hai_idx, int naki_aka_count){
 
 	// 鳴きプレーヤー確認(鳴いたのが自分であれば)
 	if( ply_num == naki_ply_num ){
@@ -1173,7 +929,7 @@ void PlyActNaki(int naki_ply_num, LBPAct naki_ply_act, int hai, int chi_hai_idx,
 		// ----------------------------------------
 		// シャンテン確認・捨牌確定
 		// ----------------------------------------
-		PlyChkNakiSute();
+		PlyChkNakiSute(pinfo);
 
 	}
 
@@ -1182,7 +938,7 @@ void PlyActNaki(int naki_ply_num, LBPAct naki_ply_act, int hai, int chi_hai_idx,
 /* ---------------------------------------------------------------------------------------------- */
 // 鳴き捨牌アクション
 /* ---------------------------------------------------------------------------------------------- */
-void PlyChkNakiSute(){
+void PlyChkNakiSute(struct MJSPlyInfo *pinfo){
 
 		// 自摸有の向聴算出
 		ChkTsumoAriShanten();
@@ -1202,6 +958,26 @@ void PlyChkNakiSute(){
 
 		// アクションの指定
 		ply_act = ACTNAKISUTE;
+
+		// ----------------------------------------
+		// pinfo設定
+		// ----------------------------------------
+
+		// アクション定義
+		pinfo->ply_act = ply_act;
+
+		// アクション牌の定義
+		pinfo->act_hai = ply_sute_hai;
+
+		// 牌INDEXの定義
+		pinfo->act_idx = ply_sute_hai;
+
+		// 赤牌設定
+		if(ply_sute_aka == true){
+			pinfo->act_aka_count = 1;
+		}else{
+			pinfo->act_aka_count = 0;
+		}
 
 }
 
@@ -1226,7 +1002,7 @@ void PlyActNakiSute(){
 	ChkTsumoNashiShanten();
 
 	// 鳴き捨牌処理
-	// PlySetTsumoSuteTehaiHist();
+	PlySetTsumoSuteTehaiHist();
 	PlyChkPlyStat();
 	PlyChkNakitbl();
 
@@ -1882,6 +1658,236 @@ void settehaitbl(){
 
 		}
 	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// pinfo情報定義
+/* ---------------------------------------------------------------------------------------------- */
+void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, int tmp_act_idx, int tmp_act_aka_count){
+
+	// 値代入
+	pinfo->ply_act = tmp_ply_act;
+	pinfo->act_hai = tmp_act_hai;
+	pinfo->act_idx = tmp_act_idx;
+	pinfo->act_aka_count = tmp_act_aka_count;
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// ライン手牌情報表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_tehai_line(){
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// ヒストグラム手牌情報表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_tehai_hist(){
+
+	printf("================\n");
+	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
+		printf("%d ", tehai[tmp_i]);
+		if(tmp_i==0 || tmp_i==10 || tmp_i==20 || tmp_i==30 || tmp_i==37){
+			printf("\n");
+		}
+	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// ライン手牌情報表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_tehai_aka(){
+
+	printf("================\n");
+	for(int tmp_i=0; tmp_i < 3; tmp_i++){
+		printf("aka_count[%d] = %d\n", tmp_i, aka_count[tmp_i]);
+	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 自摸有り手牌情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_tsumoari_tehai_info(){
+
+	// 自摸有り表記
+	printf("================\n");
+	printf("手牌情報：自摸有り\n");
+
+	// 有効牌
+	printf("向聴数%d枚\n"  , shanten_normal);
+	printf("頭枚数%d枚\n"  , atama_count);
+	printf("メンツ数%d枚\n", mentu_count);
+	printf("ターツ数%d枚\n", taatu_count);
+
+	// 捨牌候補数
+	printf("捨牌候補%d種\n", sutekoho_count);
+
+	// 一覧表示
+	for(int tmp_i = 0; tmp_i < sutekoho_count; tmp_i++){
+		print_sutekoho(tmp_i);
+	}
+
+	// 最終捨牌候補
+	printf("---\n");
+	printf("最終捨牌候補：No.%d：牌%2d\n", fixed_sutekoho_num+1, sutekoho_hai[fixed_sutekoho_num]);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 自摸無し手牌情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_tsumonashi_tehai_info(){
+
+	// 自摸あり表記
+	printf("================\n");
+	printf("手牌情報：自摸無し\n");
+
+	// 有効牌
+	printf("向聴数%d枚\n"  , shanten_normal);
+	printf("頭枚数%d枚\n"  , atama_count);
+	printf("メンツ数%d枚\n", mentu_count);
+	printf("ターツ数%d枚\n", taatu_count);
+
+	// 萬子
+	printf("m ");
+	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
+		if(yuko_hai_13mai[tmp_j+1] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+	printf("\n");
+
+	// 筒子
+	printf("p ");
+	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
+		if(yuko_hai_13mai[tmp_j+11] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+	printf("\n");
+
+	// 索子
+	printf("s ");
+	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
+		if(yuko_hai_13mai[tmp_j+21] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+	printf("\n");
+
+	// 字牌
+	printf("z ");
+	for(int tmp_j = 0; tmp_j < 7; tmp_j++){
+		if(yuko_hai_13mai[tmp_j+31] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+	printf("\n");
+
+	// 鳴き情報
+	printf("鳴き候補枚数%d枚\n", nakikoho_tbl_count);
+
+	// 鳴きテーブル情報
+	for(int tmp_i = 0; tmp_i < nakikoho_tbl_count; tmp_i++){
+
+		// 1段目・牌番号
+		printf("%d:牌%d,IDX%d\n", tmp_i+1, nakikoho_tbl_hai[tmp_i], nakikoho_tbl_idx[tmp_i]);
+
+		// 2段目・アクション
+		if( nakikoho_tbl_act[tmp_i] == ACTRON){
+			printf("Act:ロン");
+		}else if( nakikoho_tbl_act[tmp_i] == ACTPON){
+			printf("Act:ポン");
+		}else if( nakikoho_tbl_act[tmp_i] == ACTCHI){
+			printf("Act:チー");
+		}else{
+			printf("Act:不明");
+		}
+
+		// 3段目・鳴きの有無
+		if( nakikoho_tbl_yesno[tmp_i] == true){
+			printf("鳴有");
+		}else{
+			printf("鳴無");
+		}
+
+		// 改行
+		printf("\n");
+
+	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 捨牌候補情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_sutekoho(int sutenum){
+
+	// パーツ表示(候補牌)
+	// dparts->DispHai(x, y+30, sutekoho_hai[sutenum], false, false, 0, 0);
+	printf("捨牌候補%2d：牌%2d　：", sutenum+1, sutekoho_hai[sutenum]);
+
+	// 候補数表示
+	printf("%d向%2d種%2d枚ポインタ%d　：", 
+		sutekoho_shanten[sutenum], 
+		yuko_haishu_count[sutenum],
+		yuko_hai_count[sutenum],
+		sutekoho_priority[sutenum]);
+
+	// 候補牌 - 萬子
+	printf("m ");
+	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
+		if(yuko_hai[sutenum][tmp_j+1] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+
+	// 候補牌 - 筒子
+	printf("p ");
+	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
+		if(yuko_hai[sutenum][tmp_j+11] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+
+	// 候補牌 - 索子
+	printf("s ");
+	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
+		if(yuko_hai[sutenum][tmp_j+21] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+
+	// 候補牌 - 字牌
+	printf("z");
+	for(int tmp_j = 0; tmp_j < 7; tmp_j++){
+		if(yuko_hai[sutenum][tmp_j+31] == true){
+			printf("%d",tmp_j+1);
+		}else{
+			printf(" ");
+		}
+	}
+
+	// 改行
+	printf("\n");
 
 }
 

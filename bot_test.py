@@ -21,6 +21,11 @@ ret = mjs.init_mjs_module(ply_id)
 # メイン処理
 while True:
   res = sys.stdin.readline().strip()
+  print("================")
+  print("RES->:")
+  print(res)
   snd = mjs.get_message(res)
+  print("================")
+  print("<-SND:")
   sys.stdout.write(snd + "\n")
   sys.stdout.flush()

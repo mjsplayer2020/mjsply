@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.9(暗槓処理実装)
+ * バージョン     ： 0.0.1.0.11(チーポン処理準備)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/23 10:53:04
+ * 最終更新日     ： 2024/06/29 15:53:39
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -179,27 +179,27 @@ typedef enum {
 	static bool yuko_hai[14][40];              // 有効牌
 	static int  yuko_haishu_count[14];         // 有効牌の牌種別数
 	static int  yuko_hai_count[14];            // 有効牌となる種別の総数
-	static int  yuko_max_count;                // 有効牌の最大数
+	static int  yuko_max_count;                   // 有効牌の最大数
 
-	static int fixed_sutekoho_num;             // 最終決定した捨牌番号
+	static int fixed_sutekoho_num;                // 最終決定した捨牌番号
 
 	// -----------------------------
 	// 鳴き候補テーブル
 	// -----------------------------
 
 	// プレーヤ状態
-	static bool ply_tehai_naki_stat;           // 鳴き許可
-	static bool ply_yakuhai_stat;              // 役牌の保持状態
+	static bool ply_tehai_naki_stat;              // 鳴き許可
+	static bool ply_yakuhai_stat;                 // 役牌の保持状態
 
 	// 有効牌
-	static bool yuko_hai_13mai[40];            // 13枚時の有効牌
+	static bool yuko_hai_13mai[40];               // 13枚時の有効牌
 
 	// 鳴き候補テーブル
-	static int  nakikoho_tbl_count;            // 鳴き候補テーブルの枚数
-	static LBPAct nakikoho_tbl_act[20];        // 鳴き候補テーブル
-	static int  nakikoho_tbl_hai[20];          // 鳴き候補_牌テーブル
-	static int  nakikoho_tbl_idx[20];          // 鳴き候補_チーテーブル
-	static bool nakikoho_tbl_yesno[20];        // 鳴き候補_実行有無
+	static int  nakikoho_tbl_count;               // 鳴き候補テーブルの枚数
+	static LBPAct nakikoho_tbl_act[20];           // 鳴き候補テーブル
+	static int  nakikoho_tbl_hai[20];             // 鳴き候補_牌テーブル
+	static int  nakikoho_tbl_idx[20];             // 鳴き候補_チーテーブル
+	static bool nakikoho_tbl_yesno[20];           // 鳴き候補_実行有無
 
 	// -----------------------------
 	// 構造体
@@ -207,12 +207,18 @@ typedef enum {
 
 	// 情報共有用構造体(pinfo)
 	struct MJSPlyInfo{
-		LBPAct ply_act;                     // プレーヤーのアクションステータス
-		int act_hai;                        // アクション時に指定した牌
-		int act_idx;                        // 牌INDEX
-		int act_aka_count;                  // 赤牌枚数
-		int sample_num;                     // デバグ用
+		LBPAct ply_act;                           // プレーヤーのアクションステータス
+		int act_hai;                              // アクション時に指定した牌
+		int act_idx;                              // 牌INDEX
+		int act_aka_count;                        // 赤牌枚数
 	};
+
+	// -----------------------------
+	// 表示モード
+	// -----------------------------
+
+	static int print_pinfo_mode;                   // 表示モード(1:全ての結果を表示する)
+
 
 /* ---------------------------------------------------------------------------------------------- */
 // 関数定義
@@ -225,6 +231,9 @@ typedef enum {
 	// クラス初期化・後処理
 	void PlyInit();
 	void PlyPost();
+
+	// 汎用確認
+	void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, int tmp_act_idx, int tmp_act_aka_count);
 
 	// 1-1.卓開始・終了
 	void PlyActTakuStart(int tmp_ply_num);
@@ -269,18 +278,17 @@ typedef enum {
 	void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai);  // 鳴き確認
 
 	// 4-2.鳴きアクション処理
-	void PlyActNaki(int naki_ply_num,                                 // 鳴きプレーヤ
+	void PlyActNaki(struct MJSPlyInfo *pinfo,                         // 捨て牌アクション定義
+	                int naki_ply_num,                                 // 鳴きプレーヤ
 	                LBPAct naki_ply_act,                              // 鳴きアクション種別
 	                int hai,                                          // 鳴き牌
 	                int chi_hai_idx,                                  // 鳴き面子(チー面子)の頭牌
 	                int naki_aka_count);                              // 鳴き面子の赤牌枚数
 
 	// 4-3.鳴きアクション処理(サブ処理)
-	void PlyActPon(int tmp_naki_hai);                                 // ポンアクション
-	void PlyActChi(int tmp_naki_hai);                                 // チーアクション
-	void PlyChkNakiSute();                                            // 鳴き後の捨牌確認
+	void PlyChkNakiSute(struct MJSPlyInfo *pinfo);                    // 鳴き後の捨牌確認
 
-	// 4-5.鳴き捨牌アクション
+	// 4-4.鳴き捨牌アクション
 	void PlyActNakiSute();                                            // 鳴き後の捨牌処理
 
 	// 5-1.和了終了処理

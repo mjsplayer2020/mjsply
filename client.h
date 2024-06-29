@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.9(暗槓処理実装)
+ * バージョン     ： 0.0.1.0.11(チーポン処理準備)
  * プログラム名   ： mjs
  * ファイル名     ： client.h
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/23 10:53:04
+ * 最終更新日     ： 2024/06/29 15:53:39
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -30,7 +30,7 @@
 #define VER2    0             // 2桁目のバージョン(ソース全体の改変があった場合(一から作り直した場合)、互換性なし)
 #define VER3    1             // 3桁目のバージョン(新機能の追加した場合、又は既存ソースからフォークした場合、互換性あり)
 #define VER4    0             // 4桁目のバージョン(雑多な細かい更新があった場合、互換性あり)
-#define VER5   10             // 5桁目のバージョン(内部管理用、公開時は常に0とする、互換性あり)
+#define VER5   11             // 5桁目のバージョン(内部管理用、公開時は常に0とする、互換性あり)
 
 /* ---------------------------------------------------------------------------------------------- */
 // 変数定義
@@ -88,8 +88,8 @@ struct MJSClient{
 	void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 自摸時処理
 	void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);     // リーチ時処理
 	void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
-	void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
-	void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
+	void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);        // ポン処理
+	void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);        // チー処理
 
 	// 自摸後アクション(ply関数向け)
 	void set_post_tsumo_act(struct MJSPlyInfo *pinfo);
@@ -99,20 +99,20 @@ struct MJSClient{
 	// -----------------------------
 
 	// メッセージ定義(メイン処理)
-	void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes);                       // 自摸時メッセージ定義(メイン)
-	void set_naki_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_sute_ply_id);   // 鳴き確認時メッセージ定義(メイン)
+	void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes);                                                          // 自摸時メッセージ定義(メイン)
+	void set_naki_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_sute_ply_id);                                      // 鳴き確認時メッセージ定義(メイン)
 
 	// メッセージ定義(サブ処理)
-	void set_snd_joinmes(char *tmp_snd_mes);                                                                                  // ジョインメッセージ
-	void set_snd_dahai_mes(char *tmp_snd_mes, int hai, bool aka_flg, bool tsumogiri_flg);                                     // 捨牌メッセージ
-	void set_snd_riichi_mes(char *tmp_snd_mes);                                                                               // リーチメッセージ
-	void set_snd_ankan_mes(char *tmp_snd_mes, int ankan_hai, int tehai_aka_count);                                            // 暗槓メッセージ
-	void set_snd_kakan_mes(char *tmp_snd_mes, int nakl_hai_num, bool naki_aka, int tehai_aka_count);                          // 加槓メッセージ
-	void set_snd_pon_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_aka, int tehai_aka_count);                // ポンメッセージ
-	void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_aka, int naki_idx, int tehai_aka_count);  // チーメッセージ
-	void set_snd_minkan_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_aka, int tehai_aka_count);             // 明槓メッセージ
-	void set_snd_hora_mes(char *tmp_snd_mes, int ply_target, int agari_hai, bool agari_aka);                                  // 和了(ロン・ツモ)メッセージ                                                                                                  // 無効メッセージ
-	void set_snd_none_mes(char *tmp_snd_mes);                                                                                 // noneメッセージ
+	void set_snd_joinmes(char *tmp_snd_mes);                                                                                      // ジョインメッセージ
+	void set_snd_dahai_mes(char *tmp_snd_mes, int hai, bool aka_flg, bool tsumogiri_flg);                                         // 捨牌メッセージ
+	void set_snd_riichi_mes(char *tmp_snd_mes);                                                                                   // リーチメッセージ
+	void set_snd_ankan_mes(char *tmp_snd_mes, int ankan_hai, int tehai_aka_count);                                                // 暗槓メッセージ
+	void set_snd_kakan_mes(char *tmp_snd_mes, int nakl_hai_num, bool naki_aka, int tehai_aka_count);                              // 加槓メッセージ
+	void set_snd_pon_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_aka, int tehai_aka_count);                    // ポンメッセージ
+	void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_aka, int naki_idx, int tehai_aka_count);      // チーメッセージ
+	void set_snd_minkan_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_aka, int tehai_aka_count);                 // 明槓メッセージ
+	void set_snd_hora_mes(char *tmp_snd_mes, int ply_target, int agari_hai, bool agari_aka);                                      // 和了(ロン・ツモ)メッセージ                                                                                                  // 無効メッセージ
+	void set_snd_none_mes(char *tmp_snd_mes);                                                                                     // noneメッセージ
 
 	// -----------------------------
 	// サブ関数
