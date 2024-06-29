@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.11(チーポン処理準備)
+ * バージョン     ： 0.0.1.0.12(ログ表示レベルの実装)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/29 15:53:39
+ * 最終更新日     ： 2024/06/29 22:21:40
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -491,7 +491,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				break;
 
 			// -----------------------
-			// ミンカン処理
+			// 明槓アクション
 			// -----------------------
 			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
 			         strcmp(cli->wk_str[tmp_i+1], "daiminkan" ) == 0 ){
@@ -513,6 +513,18 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 
 				// アクション設定
 				// Set_type_reach_accepted(tk,gui, tmp_i);
+
+				// type_noneメッセージの設定
+				set_snd_none_mes(tmp_snd_mes);
+
+				// メッセージ確定のために処理抜け
+				break;
+
+			// -----------------------
+			// 槓ドラ(追加ドラ)の表示
+			// -----------------------
+			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_i+1], "dora" ) == 0 ){
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -779,11 +791,6 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		PlyActTsumo(pinfo, cli_tsumo_hai, cli_tsumo_aka);
 
 		// ----------------------------------------
-		// pinfo結果表示
-		// ----------------------------------------
-		print_pinfo_act(pinfo);
-
-		// ----------------------------------------
 		// メッセージ定義
 		// ----------------------------------------
 		set_tsumo_act_mes(pinfo, tmp_snd_mes);
@@ -845,11 +852,6 @@ void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_
 		// ply関数処理
 		// ----------------------------------------
 		PlyActTsumo(pinfo, cli_tsumo_hai, cli_tsumo_aka);
-
-		// ----------------------------------------
-		// pinfo結果表示
-		// ----------------------------------------
-		print_pinfo_act(pinfo);
 
 		// ----------------------------------------
 		// メッセージ定義
@@ -923,11 +925,6 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		// ply関数処理(鳴き確認)
 		// ----------------------------------------
 		PlyChkNaki(pinfo, tmp_ply_sute_id, cli_sute_hai);
-
-		// ----------------------------------------
-		// pinfo結果表示
-		// ----------------------------------------
-		print_pinfo_act(pinfo);
 
 		// ----------------------------------------
 		// メッセージ定義：鳴き確認(捨牌確認)
@@ -1012,11 +1009,6 @@ void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd
 	                tmp_naki_hai,                 // 鳴き牌
 	                tmp_naki_hai,                 // 鳴き面子(チー面子)の頭牌
 	                tmp_aka_count);               // 鳴き面子の赤牌枚数
-
-		// ----------------------------------------
-		// pinfo結果表示
-		// ----------------------------------------
-		print_pinfo_act(pinfo);
 
 		// ----------------------------------------
 		// 鳴き捨牌アクション
@@ -1141,11 +1133,6 @@ void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd
 	                tmp_naki_hai,                 // 鳴き牌
 	                tmp_chi_idx,                  // 鳴き面子(チー面子)の頭牌
 	                tmp_aka_count);               // 鳴き面子の赤牌枚数
-
-		// ----------------------------------------
-		// pinfo結果表示
-		// ----------------------------------------
-		print_pinfo_act(pinfo);
 
 		// ----------------------------------------
 		// 鳴き捨牌アクション
@@ -1527,46 +1514,6 @@ void set_snd_none_mes(char *tmp_snd_mes){
 
 	// sendメッセージ設定
 	sprintf(tmp_snd_mes, "{\"type\":\"none\"}\n");
-
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-// 表示処理：pinfoアクション
-/* ---------------------------------------------------------------------------------------------- */
-void print_pinfo_act(struct MJSPlyInfo *pinfo){
-
-	// アクション表示
-	printf("================\n");
-	if(pinfo->ply_act == ACTTSUMOAGARI){
-		printf("アクション：自摸和了\n");
-	}else if(pinfo->ply_act == ACTSUTE){
-		printf("アクション：捨牌　　\n");
-	}else if(pinfo->ply_act == ACTTSUMOGIRI){
-		printf("アクション：自摸切り\n");
-	}else if(pinfo->ply_act == ACTNAKISUTE){
-		printf("アクション：鳴き捨牌\n");
-	}else if(pinfo->ply_act == ACTRIICH){
-		printf("アクション：リーチ　\n");
-	}else if(pinfo->ply_act == ACTANKAN){
-		printf("アクション：暗槓　　\n");
-	}else if(pinfo->ply_act == ACTKAKAN){
-		printf("アクション：加槓　　\n");
-	}else if(pinfo->ply_act == ACTNONAKI){
-		printf("アクション：鳴き無し\n");
-	}else if(pinfo->ply_act == ACTRON){
-		printf("アクション：ロン和了\n");
-	}else if(pinfo->ply_act == ACTPON){
-		printf("アクション：ポン\n");
-	}else if(pinfo->ply_act == ACTCHI){
-		printf("アクション：チー\n");
-	}else{
-		printf("アクション：不明　　\n");
-	}
-
-	// 牌情報
-	printf("pinfo->act_hai = %d\n", pinfo->act_hai);
-	printf("pinfo->act_idx = %d\n", pinfo->act_idx);
-	printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
 
 }
 

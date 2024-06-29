@@ -42,4 +42,3 @@ while True:
   print("<-SND:")
   print(snd)
   s.send(snd.encode('utf8'))
-# s.send(b"{\"type\":\"none\"}\n")

@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.11(チーポン処理準備)
+ * バージョン     ： 0.0.1.0.12(ログ表示レベルの実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/29 15:53:39
+ * 最終更新日     ： 2024/06/29 22:21:40
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -72,6 +72,9 @@ typedef enum {
 
 	// 赤牌情報
 	static int max_aka_count[AKA_SHUBETSU_MAX];     // 最大赤牌枚数
+
+	// 局の自摸回数
+	static int kyoku_tsumo_count;                   // 局の自摸回数(最大70まで)
 
 	// -----------------------------
 	// 手牌情報
@@ -217,7 +220,7 @@ typedef enum {
 	// 表示モード
 	// -----------------------------
 
-	static int print_pinfo_mode;                   // 表示モード(1:全ての結果を表示する)
+	static int print_ply_mode;                   // ply関数の表示モード(0:何も表示しない、1:plyの設定値を表示する)
 
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -258,6 +261,7 @@ typedef enum {
 	void PlyChkAnkan(int tmp_tsumo_hai, bool tmp_tsumo_aka);          // 暗槓確認
 	void PlyChkKakan(int tmp_tsumo_hai, bool tmp_tsumo_aka);          // 加槓確認
 	void PlyChkTsumoSute();                                           // 自摸時のアクションと捨牌決定(サブ)
+	void PlyCountTsumo();                                             // 自摸枚数をカウント
 
 	// 3-2.リーチ宣言時処理
 	void PlyChkRiichiSute(struct MJSPlyInfo *pinfo);                  // リーチ時の捨牌決定(メイン)
@@ -330,12 +334,16 @@ typedef enum {
 	// 汎用関数
 	void print_tehai_line();                 // ライン手牌情報表示
 	void print_tehai_hist();                 // 手牌ヒストグラム表示
-	void print_tehai_aka();                  // 手牌の赤牌枚数
+	void print_tehai_aka();                            // 手牌の赤牌枚数
+	void print_pinfo_act(struct MJSPlyInfo *pinfo);    // アクション表示
 
 	// 手牌詳細情報
 	void print_tsumoari_tehai_info();        // 自摸有り手牌の詳細銃砲
 	void print_tsumonashi_tehai_info();      // 自摸無し手牌の詳細銃砲
 	void print_sutekoho(int sutenum);        // 手牌ごとの詳細銃砲
+
+
+
 
 #endif/* PLY_H_INCLUDED */
 

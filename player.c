@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.11(チーポン処理準備)
+ * バージョン     ： 0.0.1.0.12(ログ表示レベルの実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/29 15:53:39
+ * 最終更新日     ： 2024/06/29 22:21:40
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -29,16 +29,16 @@ void PlyActTakuStart(int tmp_ply_num){
 	// -----------------------------
 	// 結果表示のモード設定
 	// -----------------------------
-	print_pinfo_mode = 1;
+	print_ply_mode = 1;
 
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-/*
-	printf("================\n");
-	printf("ply_num = %d\n", ply_num);
-	printf("ply_num_shimo = %d\n", ply_num_shimo);
-*/
+	if( print_ply_mode > 0){
+		printf("================\n");
+		printf("ply_num = %d\n", ply_num);
+		printf("ply_num_shimo = %d\n", ply_num_shimo);
+	}
 
 }
 
@@ -54,6 +54,9 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	ie = tmp_ie;
 	ply_bakaze = tmp_kaze;
 	ply_zikaze = tmp_kaze + ie;
+
+	// 残り枚数(自摸合計数)
+	kyoku_tsumo_count = 0;
 
 	// 配牌初期化
 	for(int i=0; i< PAI_MAX; i++){
@@ -103,12 +106,12 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-/*
-	printf("================\n");
-	printf("ie = %d\n", ie);
-	printf("ply_bakaze = %d\n", ply_bakaze);
-	printf("ply_zikaze = %d\n", ply_zikaze);
-*/
+	if( print_ply_mode > 0){
+		printf("================\n");
+		printf("ie = %d\n", ie);
+		printf("ply_bakaze = %d\n", ply_bakaze);
+		printf("ply_zikaze = %d\n", ply_zikaze);
+	}
 
 }
 
@@ -128,15 +131,15 @@ void PlyActHaipai(int tmp_tsumo_hai, bool tmp_tsumo_aka){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
-/*
-	printf("---\n");
-	printf("tmp_tsumo_hai = %d\n", tmp_tsumo_hai);
-	if(tmp_tsumo_aka==true){
-		printf("tmp_tsumo_aka = true\n");
-	}else{
-		printf("tmp_tsumo_aka = false\n");
+	if( print_ply_mode > 0){
+		printf("---\n");
+		printf("tmp_tsumo_hai = %d\n", tmp_tsumo_hai);
+		if(tmp_tsumo_aka==true){
+			printf("tmp_tsumo_aka = true\n");
+		}else{
+			printf("tmp_tsumo_aka = false\n");
+		}
 	}
-*/
 
 }
 
@@ -157,15 +160,16 @@ void PlyActPostHaipai(){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
+	if( print_ply_mode > 0){
+		// 手牌ヒストグラム表示
+		print_tehai_hist();
 
-	// 手牌ヒストグラム表示
-	print_tehai_hist();
+		// 赤牌情報
+		print_tehai_aka();
 
-	// 赤牌情報
-	print_tehai_aka();
-
-	// 自摸無し手牌詳細情報
-	print_tsumonashi_tehai_info();
+		// 自摸無し手牌詳細情報
+		print_tsumonashi_tehai_info();
+	}
 
 }
 
@@ -185,31 +189,40 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 	ply_tsumo_hai = tmp_tsumo_hai;
 	ply_tsumo_aka = tmp_tsumo_aka;
 
-	// 手牌ヒストグラム表示
-	print_tehai_hist();
+	// ----------------------------------------
+	// 結果表示(手牌、自摸牌)
+	// ----------------------------------------
+	if( print_ply_mode > 0){
 
-	// 赤牌情報
-	print_tehai_aka();
+		// 手牌ヒストグラム表示
+		print_tehai_hist();
 
-	// 自摸牌
-	printf("自摸牌%2d\n", ply_tsumo_hai);
+		// 赤牌情報
+		print_tehai_aka();
 
-	// 赤牌
-	if(ply_tsumo_aka==true){
-		printf("ply_tsumo_aka = true\n");
-	}else{
-		printf("ply_tsumo_aka = false\n");
+		// 自摸牌
+		printf("自摸牌%2d\n", ply_tsumo_hai);
+
+		// 赤牌
+		if(ply_tsumo_aka==true){
+			printf("ply_tsumo_aka = true\n");
+		}else{
+			printf("ply_tsumo_aka = false\n");
+		}
 	}
 
+	// ----------------------------------------
 	// 自摸有の向聴算出
+	// ----------------------------------------
 	ChkTsumoAriShanten();
 
 	// ----------------------------------------
-	// 結果表示
+	// 結果表示(自摸有り手牌情報)
 	// ----------------------------------------
-
-	// 自摸有り手牌情報詳細
-	print_tsumoari_tehai_info();
+	if( print_ply_mode > 0){
+		// 自摸有り手牌情報詳細
+		print_tsumoari_tehai_info();
+	}
 
 	// ----------------------------------------
 	// 自摸和了確認
@@ -295,8 +308,17 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 		// 牌INDEXの定義
 		pinfo->act_idx = ply_naki_idx;
 
-		// 赤牌設定
-		pinfo->act_aka_count = 1;
+		// 晒し処理(赤牌)
+		if( ply_naki_idx == MAN5NUM || 
+		    ply_naki_idx == PIN5NUM || 
+		    ply_naki_idx == SOU5NUM ){
+
+			// 赤牌設定(赤牌あり)
+			pinfo->act_aka_count = 1;
+		}else{
+			// 赤牌設定(赤牌なし)
+			pinfo->act_aka_count = 0;
+		}
 
 	// 加槓の場合
 	}else if( ply_act == ACTKAKAN){
@@ -337,6 +359,14 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 		}
 
 	}
+
+	// ----------------------------------------
+	// pinfo情報表示
+	// ----------------------------------------
+	if( print_ply_mode > 0){
+		print_pinfo_act(pinfo);
+	}
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -573,16 +603,18 @@ void PlyActTsumoSute(){
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
+	if( print_ply_mode > 0){
 
-	// 手牌ヒストグラム表示
-	print_tehai_hist();
+		// 手牌ヒストグラム表示
+		print_tehai_hist();
 
-	// 赤牌情報
-	print_tehai_aka();
+		// 赤牌情報
+		print_tehai_aka();
 
-	// 自摸無し手牌詳細情報
-	print_tsumonashi_tehai_info();
+		// 自摸無し手牌詳細情報
+		print_tsumonashi_tehai_info();
 
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -867,6 +899,13 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai){
 
 	}
 
+	// ----------------------------------------
+	// pinfo情報表示
+	// ----------------------------------------
+	if( print_ply_mode > 0){
+		print_pinfo_act(pinfo);
+	}
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -974,10 +1013,17 @@ void PlyChkNakiSute(struct MJSPlyInfo *pinfo){
 
 		// 赤牌設定
 		if(ply_sute_aka == true){
-			pinfo->act_aka_count = 1;
+			pinfo->act_aka_count = 999;
 		}else{
 			pinfo->act_aka_count = 0;
 		}
+
+	// ----------------------------------------
+	// pinfo情報表示
+	// ----------------------------------------
+	if( print_ply_mode > 0){
+		print_pinfo_act(pinfo);
+	}
 
 }
 
@@ -1002,7 +1048,6 @@ void PlyActNakiSute(){
 	ChkTsumoNashiShanten();
 
 	// 鳴き捨牌処理
-	PlySetTsumoSuteTehaiHist();
 	PlyChkPlyStat();
 	PlyChkNakitbl();
 
@@ -1672,6 +1717,13 @@ void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, in
 	pinfo->act_idx = tmp_act_idx;
 	pinfo->act_aka_count = tmp_act_aka_count;
 
+	// ----------------------------------------
+	// pinfo情報表示
+	// ----------------------------------------
+	if( print_ply_mode > 0){
+		print_pinfo_act(pinfo);
+	}
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1888,6 +1940,46 @@ void print_sutekoho(int sutenum){
 
 	// 改行
 	printf("\n");
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：pinfoアクション
+/* ---------------------------------------------------------------------------------------------- */
+void print_pinfo_act(struct MJSPlyInfo *pinfo){
+
+	// アクション表示
+	printf("================\n");
+	if(pinfo->ply_act == ACTTSUMOAGARI){
+		printf("アクション：自摸和了\n");
+	}else if(pinfo->ply_act == ACTSUTE){
+		printf("アクション：捨牌　　\n");
+	}else if(pinfo->ply_act == ACTTSUMOGIRI){
+		printf("アクション：自摸切り\n");
+	}else if(pinfo->ply_act == ACTNAKISUTE){
+		printf("アクション：鳴き捨牌\n");
+	}else if(pinfo->ply_act == ACTRIICH){
+		printf("アクション：リーチ　\n");
+	}else if(pinfo->ply_act == ACTANKAN){
+		printf("アクション：暗槓　　\n");
+	}else if(pinfo->ply_act == ACTKAKAN){
+		printf("アクション：加槓　　\n");
+	}else if(pinfo->ply_act == ACTNONAKI){
+		printf("アクション：鳴き無し\n");
+	}else if(pinfo->ply_act == ACTRON){
+		printf("アクション：ロン和了\n");
+	}else if(pinfo->ply_act == ACTPON){
+		printf("アクション：ポン\n");
+	}else if(pinfo->ply_act == ACTCHI){
+		printf("アクション：チー\n");
+	}else{
+		printf("アクション：不明　　\n");
+	}
+
+	// 牌情報
+	printf("pinfo->act_hai = %d\n", pinfo->act_hai);
+	printf("pinfo->act_idx = %d\n", pinfo->act_idx);
+	printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
 
 }
 
