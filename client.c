@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.12(ログ表示レベルの実装)
+ * バージョン     ： 0.0.1.0.14(河情報の設定)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/29 22:21:40
+ * 最終更新日     ： 2024/07/06 22:47:29
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -21,32 +21,39 @@
 void set_ply_id(int tmp_ply_id){
 
 	// 卓開始処理(Ply_id設定)
-	ply_id = tmp_ply_id;
-	PlyActTakuStart(tmp_ply_id);
+	cli_ply_id = tmp_ply_id;
+	PlyActTakuStart(cli_ply_id);
 
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 // メイン処理
 /* ---------------------------------------------------------------------------------------------- */
-void set_taku_stat_main(struct MJSClient *cli, char* tmp_res_mes, char* tmp_snd_mes){
+// void set_taku_stat_main(struct MJSClient *cli, char* tmp_res_mes, char* tmp_snd_mes){
+void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 
 	// ----------------------------------------
 	// 初期化処理
 	// ----------------------------------------
 
 	// 構造体定義
-	struct MJSPlyInfo pinfo;
+	struct MJSPlyInfo tmp_pinfo;
+	struct MJSClient  tmp_cli;
+
+	// 変数定義
+	cli_max_aka_count[0] = 1;
+	cli_max_aka_count[1] = 1;
+	cli_max_aka_count[2] = 1;
 
 	// ----------------------------------------
 	// メイン処理
 	// ----------------------------------------
 
 	// 解析
-	read_logline(cli, tmp_res_mes);
+	read_logline(&tmp_cli, tmp_res_mes);
 
-	// MjaiのTYPEごとの処理確認
-	chk_mjai_type_main(cli, &pinfo, tmp_snd_mes);
+	// Mjaiのtypeごとの処理確認
+	chk_mjai_type_main(&tmp_cli, &tmp_pinfo, tmp_snd_mes);
 
 }
 
@@ -376,7 +383,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_type_startgame(cli, tmp_i);
 
 				// 卓開始処理
-				PlyActTakuStart(ply_id);
+				PlyActTakuStart(cli_ply_id);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -635,8 +642,8 @@ void set_type_startgame(struct MJSClient *cli, int tmp_wk_num){
 	// 前処理
 	// ----------------------------------------
 
-	// HUMプレーヤーのPly_id設定
-	ply_id = atoi(cli->wk_str[tmp_wk_num+3]);
+	// HUMプレーヤーのcli_ply_id設定
+	cli_ply_id = atoi(cli->wk_str[tmp_wk_num+3]);
 
 }
 
@@ -705,7 +712,7 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	tmp_ply_oya = atoi(cli->wk_str[tmp_wk_num+11]);
 
 	// 家算出
-	tmp_ply_ie = ( 4 + ply_id - tmp_ply_oya) % 4;
+	tmp_ply_ie = ( 4 + cli_ply_id - tmp_ply_oya) % 4;
 
 	// 結果表示
 /*	printf("================\n");
@@ -721,7 +728,7 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// 配牌設定
 	// ----------------------------------------
 	// 配牌ポインター設定
-	haipai_point=tmp_wk_num + 15 + TEHAI_MAX * ply_id;
+	haipai_point=tmp_wk_num + 15 + TEHAI_MAX * cli_ply_id;
 
 	// 配牌設定
 	for(int tmp_i=0; tmp_i < TEHAI_MAX; tmp_i++){
@@ -768,7 +775,7 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 	// ----------------------------------------
 	// 自摸プレーヤが自分ならば
 	// ----------------------------------------
-	if( ply_id == tmp_ply_id ){
+	if( cli_ply_id == tmp_ply_id ){
 
 		// ----------------------------------------
 		// 牌情報設定
@@ -805,7 +812,14 @@ void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 	// ----------------------------------------
 	}else{
 
+		// ----------------------------------------
+		// OthPly自摸設定
+		// ----------------------------------------
+		PlyChkOthPlyTsumo();
+
+		// ----------------------------------------
 		// type_noneメッセージの設定
+		// ----------------------------------------
 		set_snd_none_mes(tmp_snd_mes);
 
 	}
@@ -846,7 +860,7 @@ void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_
 	// ----------------------------------------
 	// 自摸プレーヤが自分ならば
 	// ----------------------------------------
-	if( ply_id == tmp_ply_id ){
+	if( cli_ply_id == tmp_ply_id ){
 
 		// ----------------------------------------
 		// ply関数処理
@@ -896,7 +910,7 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 	// ----------------------------------------
 	// 自摸プレーヤが自分ならば
 	// ----------------------------------------
-	if( ply_id == tmp_ply_sute_id ){
+	if( cli_ply_id == tmp_ply_sute_id ){
 
 		// メッセージ定義：処理なし
 		set_snd_none_mes(tmp_snd_mes);
@@ -960,7 +974,7 @@ void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd
 	// ----------------------------------------
 	// 鳴きプレーヤが自分ならば
 	// ----------------------------------------
-	if( ply_id == tmp_naki_ply_id ){
+	if( cli_ply_id == tmp_naki_ply_id ){
 
 		// ----------------------------------------
 		// ポン牌確認(捨牌)
@@ -1070,7 +1084,7 @@ void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd
 	// ----------------------------------------
 	// 鳴きプレーヤが自分ならば
 	// ----------------------------------------
-	if( ply_id == tmp_naki_ply_id ){
+	if( cli_ply_id == tmp_naki_ply_id ){
 
 		// ----------------------------------------
 		// チー牌確認(捨牌)
@@ -1184,7 +1198,7 @@ void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
 		}
 
 		// メッセージ定義：自摸和了
-		set_snd_hora_mes(tmp_snd_mes, ply_id, pinfo->act_hai, tmp_aka_flg); 
+		set_snd_hora_mes(tmp_snd_mes, cli_ply_id, pinfo->act_hai, tmp_aka_flg); 
 
 	// ----------------------------------------
 	// 捨牌
@@ -1238,9 +1252,13 @@ void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
 
 		// メッセージ定義：加槓
 		if(pinfo->act_aka_count > 0){
-			set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, true, 0);
+			    set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, true,  cli_max_aka_count[(pinfo->act_idx-5)/10]-1 );
 		}else{
-			set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, false, 1);
+			if ( pinfo->act_idx == 5 || pinfo->act_idx == 15 || pinfo->act_idx == 25 ){
+				set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, false, cli_max_aka_count[(pinfo->act_idx-5)/10]   );
+			}else{
+				set_snd_kakan_mes(tmp_snd_mes, pinfo->act_idx, false, 0);
+			}
 		}
 
 	// ----------------------------------------
@@ -1312,10 +1330,10 @@ void set_snd_dahai_mes(char *tmp_snd_mes, int hai, bool aka_flg, bool tsumogiri_
 	// sendメッセージ設定
 	if( tsumogiri_flg == true ){
 		// アクション：自摸切り
-		sprintf(tmp_snd_mes, "{\"type\":\"dahai\",\"actor\":%d,\"pai\":\"%s\",\"tsumogiri\":true}\n", ply_id, tmp_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"dahai\",\"actor\":%d,\"pai\":\"%s\",\"tsumogiri\":true}\n", cli_ply_id, tmp_hai_chr);
 	}else{
 		// アクション：捨牌処理
-		sprintf(tmp_snd_mes, "{\"type\":\"dahai\",\"actor\":%d,\"pai\":\"%s\",\"tsumogiri\":false}\n", ply_id, tmp_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"dahai\",\"actor\":%d,\"pai\":\"%s\",\"tsumogiri\":false}\n", cli_ply_id, tmp_hai_chr);
 	}
 
 }
@@ -1329,7 +1347,7 @@ void set_snd_riichi_mes(char *tmp_snd_mes){
 	memset(tmp_snd_mes, 0, sizeof(*tmp_snd_mes));
 
 	// sendメッセージ設定
-	sprintf(tmp_snd_mes, "{\"type\":\"reach\",\"actor\":%d}\n", ply_id);
+	sprintf(tmp_snd_mes, "{\"type\":\"reach\",\"actor\":%d}\n", cli_ply_id);
 
 }
 
@@ -1347,19 +1365,19 @@ void set_snd_ankan_mes(char *tmp_snd_mes, int ankan_hai, int tehai_aka_count){
 	// sendメッセージ設定
 	if( tehai_aka_count == 0 ){
 		// 赤牌なし
-		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%s\",\"%s\",\"%s\"]}\n",     ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%s\",\"%s\",\"%s\"]}\n",     cli_ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
 	}else if( tehai_aka_count == 1 ){
 		// 赤牌1枚
-		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%s\",\"%s\",\"%sr\"]}\n",    ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%s\",\"%s\",\"%sr\"]}\n",    cli_ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
 	}else if( tehai_aka_count == 2 ){
 		// 赤牌2枚
-		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%s\",\"%sr\",\"%sr\"]}\n",   ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%s\",\"%sr\",\"%sr\"]}\n",   cli_ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
 	}else if( tehai_aka_count == 3 ){
 		// 赤牌3枚
-		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%sr\",\"%sr\",\"%sr\"]}\n",  ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%s\",\"%sr\",\"%sr\",\"%sr\"]}\n",  cli_ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
 	}else if( tehai_aka_count == 4 ){
 		// 赤牌4枚
-		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%sr\",\"%sr\",\"%sr\",\"%sr\"]}\n", ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"ankan\",\"actor\":%d,\"consumed\":[\"%sr\",\"%sr\",\"%sr\",\"%sr\"]}\n", cli_ply_id, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr, tmp_ankan_hai_chr);
 	}
 
 }
@@ -1381,16 +1399,16 @@ void set_snd_kakan_mes(char *tmp_snd_mes, int nakl_hai_num, bool naki_aka, int t
 		// Act牌が赤牌
 		if( tehai_aka_count == 0 ){
 			// 赤牌なし
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%s\",\"%s\",\"%s\"]}\n",    ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%s\",\"%s\",\"%s\"]}\n",    cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}else if( tehai_aka_count == 1 ){
 			// 赤牌3枚
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%s\",\"%s\",\"%sr\"]}\n",   ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%s\",\"%s\",\"%sr\"]}\n",   cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}else if( tehai_aka_count == 2 ){
 			// 赤牌3枚
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%s\",\"%sr\",\"%sr\"]}\n",  ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%s\",\"%sr\",\"%sr\"]}\n",  cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}else if( tehai_aka_count == 3 ){
 			// 赤牌3枚
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%sr\",\"%sr\",\"%sr\"]}\n", ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%sr\",\"consumed\":[\"%sr\",\"%sr\",\"%sr\"]}\n", cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}
 
 	}else{
@@ -1398,16 +1416,16 @@ void set_snd_kakan_mes(char *tmp_snd_mes, int nakl_hai_num, bool naki_aka, int t
 		// Act牌が黒牌
 		if( tehai_aka_count == 0 ){
 			// 赤牌なし
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%s\",\"%s\"]}\n",     ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%s\",\"%s\"]}\n",     cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}else if( tehai_aka_count == 1 ){
 			// 赤牌3枚
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%s\",\"%sr\"]}\n",    ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%s\",\"%sr\"]}\n",    cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}else if( tehai_aka_count == 2 ){
 			// 赤牌3枚
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%sr\",\"%sr\"]}\n",   ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%sr\",\"%sr\"]}\n",   cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}else if( tehai_aka_count == 3 ){
 			// 赤牌3枚
-			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%sr\",\"%sr\",\"%sr\"]}\n",  ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
+			sprintf(tmp_snd_mes, "{\"type\":\"kakan\",\"actor\":%d,\"pai\":\"%s\",\"consumed\":[\"%sr\",\"%sr\",\"%sr\"]}\n",  cli_ply_id, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr, tmp_kakan_hai_chr);
 		}
 
 	}
@@ -1432,13 +1450,13 @@ void set_snd_pon_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_
 	// sendメッセージ設定
 	if( tehai_aka_count == 0 ){
 		// 赤牌なし
-		sprintf(tmp_snd_mes, "{\"type\":\"pon\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%s\"]}\n",   ply_id, ply_target, tmp_naki_hai_chr, tmp_tehai_chr, tmp_tehai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"pon\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%s\"]}\n",   cli_ply_id, ply_target, tmp_naki_hai_chr, tmp_tehai_chr, tmp_tehai_chr);
 	}else if( tehai_aka_count == 1 ){
 		// 赤牌1枚
-		sprintf(tmp_snd_mes, "{\"type\":\"pon\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%sr\"]}\n",  ply_id, ply_target, tmp_naki_hai_chr, tmp_tehai_chr, tmp_tehai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"pon\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[\"%s\",\"%sr\"]}\n",  cli_ply_id, ply_target, tmp_naki_hai_chr, tmp_tehai_chr, tmp_tehai_chr);
 	}else if( tehai_aka_count == 2 ){
 		// 赤牌2枚
-		sprintf(tmp_snd_mes, "{\"type\":\"pon\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[\"%sr\",\"%sr\"]}\n", ply_id, ply_target, tmp_naki_hai_chr, tmp_tehai_chr, tmp_tehai_chr);
+		sprintf(tmp_snd_mes, "{\"type\":\"pon\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[\"%sr\",\"%sr\"]}\n", cli_ply_id, ply_target, tmp_naki_hai_chr, tmp_tehai_chr, tmp_tehai_chr);
 	}
 
 }
@@ -1456,7 +1474,7 @@ void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_
 	Get_haichr(nakl_hai, nakl_aka, tmp_hai_chr);
 
 	// メッセージ設定(ヘッダー)
-	sprintf(tmp_snd_mes, "{\"type\":\"chi\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[", ply_id, ply_target, tmp_hai_chr);
+	sprintf(tmp_snd_mes, "{\"type\":\"chi\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[", cli_ply_id, ply_target, tmp_hai_chr);
 
 	// チー牌設定
 	for(int tmp_i=0; tmp_i < 3; tmp_i++){
@@ -1500,7 +1518,7 @@ void set_snd_hora_mes(char *tmp_snd_mes, int ply_target, int agari_hai, bool aga
 	memset(tmp_snd_mes, 0, sizeof(*tmp_snd_mes));
 
 	// sendメッセージ設定
-	sprintf(tmp_snd_mes, "{\"type\":\"hora\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\"}\n", ply_id, ply_target, tmp_hai_chr);
+	sprintf(tmp_snd_mes, "{\"type\":\"hora\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\"}\n", cli_ply_id, ply_target, tmp_hai_chr);
 
 }
 

@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.12(ログ表示レベルの実装)
+ * バージョン     ： 0.0.1.0.14(河情報の設定)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/29 22:21:40
+ * 最終更新日     ： 2024/07/06 22:47:29
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -31,11 +31,15 @@ typedef enum {
 	PLYCHAR_NONAME = 0,                 // 00:プレーヤー状態なし
 	PLYCHAR_TAMPOPO,                    // 01:プレーヤーキャラクター1
 	PLYCHAR_HIMAWARI,                   // 02:プレーヤーキャラクター2
-	PLYCHAR_KOBUSHI,                    // 03:プレーヤーキャラクター3
+	PLYCHAR_AYAME,                      // 03:プレーヤーキャラクター3
 	PLYCHAR_TSUBAKI,                    // 04:プレーヤーキャラクター4
-	PLYCHAR_AYAME,                      // 05:プレーヤーキャラクター5
-	PLYCHAR_TSUBOMI,                    // 06:プレーヤーキャラクター6
-	PLYCHAR_SAKURA,                     // 07:プレーヤーサクラ
+	PLYCHAR_KOBUSHI,                    // 05:プレーヤーキャラクター5
+	PLYCHAR_NADESHIKO,                  // 06:プレーヤーキャラクター6
+	PLYCHAR_WAKABA,                     // 07:プレーヤーキャラクター7
+	PLYCHAR_AOBA,                       // 08:プレーヤーキャラクター8
+	PLYCHAR_FATAABA,                    // 09:プレーヤーキャラクター0
+	PLYCHAR_TSUBOMI,                    // 10:プレーヤーキャラクター10
+	PLYCHAR_SAKURA,                     // 11:プレーヤーサクラ
 
 } LBPlyChar;
 
@@ -90,7 +94,7 @@ typedef enum {
 	static bool tehaitbl_aka[TEHAI_MAX];            // 牌テーブル(赤牌)
 
 	// リーチ状態
-	static int ply_riichi_mode;                     // リーチ状態(0：リーチかけてない、1：リーチ宣言後・捨牌前、2：リーチ確定状態)
+	static int ply_riichi_mode;                     // リーチ状態(0：リーチかけてない、1：リーチ宣言時捨牌前、2：リーチ捨牌後、3：リーチ受入状態)
 
 	// -----------------------------
 	// 晒し牌情報
@@ -109,6 +113,7 @@ typedef enum {
 	// 河情報
 	// -----------------------------
 
+	static int ply_kawa_count;                      // 河の枚数
 	static int kawa[30];                            // 河(捨牌情報)
 
 	// -----------------------------
@@ -187,12 +192,20 @@ typedef enum {
 	static int fixed_sutekoho_num;                // 最終決定した捨牌番号
 
 	// -----------------------------
-	// 鳴き候補テーブル
+	// プレーヤ状態
 	// -----------------------------
 
-	// プレーヤ状態
+	// 和了処理関連
+	static bool ply_tehai_yaku_stat;              // 手牌役の有無
+	static bool ply_furiten_stat;                 // フリテン状態
+
+	// 鳴き処理関連
 	static bool ply_tehai_naki_stat;              // 鳴き許可
-	static bool ply_yakuhai_stat;                 // 役牌の保持状態
+	static bool ply_yakuhai_stat;                 // 役牌の保持有無
+
+	// -----------------------------
+	// 鳴き候補テーブル
+	// -----------------------------
 
 	// 有効牌
 	static bool yuko_hai_13mai[40];               // 13枚時の有効牌
@@ -270,15 +283,18 @@ typedef enum {
 	void PlyActTsumoSute();                                           // 自摸捨牌アクション(自摸捨牌、自摸切り、リーチ時捨牌)
 
 	// 3-4.捨牌時アクション処理(サブ処理)
-	void PlySetTsumoSuteTehaiHist();                                  // 3-2-1.自摸捨牌時の手牌ヒストグラム処理
-	void PlyChkPlyStat();                                             // 3-2-2.(10-2.)プレーヤ手牌の状態確認
-	void PlyChkNakitbl();                                             // 3-2-3.(10-3.)鳴きテーブルの状態確認
+	void PlySetTsumoSuteTehaiHist();                                  // 1.自摸捨牌時の手牌ヒストグラム処理
+	void PlyChkPlyStat();                                             // 2.プレーヤ手牌の状態確認(メイン処理)
+	void PlyChkYaku();                                                // 3.役有り確認
+	void PlyChkFuriten();                                             // 4.フリテン確認
+	void PlyChkNakitbl();                                             // 5.鳴きテーブルの状態確認
 
 	// 3-5.捨牌時アクション処理(自摸捨てアクション以外)
 	void PlyActAnkan(int tmp_naki_hai);                               // 暗槓アクション
 	void PlyActKakan(int tmp_naki_hai, int tmp_naki_aka_count);       // 加槓アクション
 
-	// 4-1.鳴き確認処理
+	// 4-1.他プレーヤ処理
+	void PlyChkOthPlyTsumo();                                         // 他プレーヤの自摸
 	void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai);  // 鳴き確認
 
 	// 4-2.鳴きアクション処理
@@ -297,8 +313,6 @@ typedef enum {
 
 	// 5-1.和了終了処理
 	void PlyAgari();
-	bool PlyChkYaku();
-	bool PlyChkFuriten();
 
 	// 5-2.流局終了処理
 	void PlyRyuKyoku();
@@ -331,19 +345,20 @@ typedef enum {
 	// 表示処理
 	/* ----------------------------- */
 
-	// 汎用関数
-	void print_tehai_line();                 // ライン手牌情報表示
-	void print_tehai_hist();                 // 手牌ヒストグラム表示
-	void print_tehai_aka();                            // 手牌の赤牌枚数
-	void print_pinfo_act(struct MJSPlyInfo *pinfo);    // アクション表示
+	// 汎用関数(手牌)
+	void print_tehai_line();                                // ライン手牌情報表示
+	void print_tehai_hist();                                // 手牌ヒストグラム表示
+	void print_tehai_aka();                                 // 手牌の赤牌枚数
+	void print_kawa_line();                                 // 河情報
+
+	// 汎用関数(パーツ)
+	void print_pinfo_act(struct MJSPlyInfo *pinfo);         // アクション表示
+	void print_mentsu(LBMen men_stat, int men_hai, int men_idx, int aka_count); // 面子情報
 
 	// 手牌詳細情報
 	void print_tsumoari_tehai_info();        // 自摸有り手牌の詳細銃砲
 	void print_tsumonashi_tehai_info();      // 自摸無し手牌の詳細銃砲
 	void print_sutekoho(int sutenum);        // 手牌ごとの詳細銃砲
-
-
-
 
 #endif/* PLY_H_INCLUDED */
 

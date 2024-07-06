@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.12(ログ表示レベルの実装)
+ * バージョン     ： 0.0.1.0.14(河情報の設定)
  * プログラム名   ： mjs
  * ファイル名     ： client.h
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/06/29 22:21:40
+ * 最終更新日     ： 2024/07/06 22:47:29
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -24,12 +24,16 @@
 // 変数定義
 /* ---------------------------------------------------------------------------------------------- */
 
-	// 変数
-	static int  ply_id;              // プレーヤ番号
+	// 手牌情報
+	static int  cli_ply_id;          // プレーヤ番号
 	static int  cli_tsumo_hai;       // 自摸牌
 	static bool cli_tsumo_aka;       // 自摸赤
 	static int  cli_sute_hai;        // 捨牌
 	static bool cli_sute_aka;        // 捨牌赤
+
+	// 赤牌情報
+	static int cli_max_aka_count[AKA_SHUBETSU_MAX];     // 最大赤牌枚数
+
 
 // 構造体定義
 struct MJSClient{
@@ -56,7 +60,8 @@ struct MJSClient{
 
 	// メイン関数
 	void set_ply_id(int tmp_ply_id);
-	void set_taku_stat_main(struct MJSClient *cli,char* tmp_res_mes, char* tmp_snd_mes);
+	// void set_taku_stat_main(struct MJSClient *cli,char* tmp_res_mes, char* tmp_snd_mes);
+	void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes);
 
 	// JSON解析
 	void read_logline(struct MJSClient *cli, char *line_buf);
@@ -70,9 +75,9 @@ struct MJSClient{
 	void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes);
 
 	// typeごとの処理確認(サブ処理)
-	void set_type_hello(struct MJSClient *cli, int tmp_wk_num);                 // helloメッセージ確認
-	void set_type_startgame(struct MJSClient *cli, int tmp_wk_num);             // 卓ゲーム開始処理
-	void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num);            // 局開始処理
+	void set_type_hello(struct MJSClient *cli, int tmp_wk_num);                                                   // helloメッセージ確認
+	void set_type_startgame(struct MJSClient *cli, int tmp_wk_num);                                               // 卓ゲーム開始処理
+	void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num);                                              // 局開始処理
 	void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 自摸時処理
 	void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);     // リーチ時処理
 	void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理

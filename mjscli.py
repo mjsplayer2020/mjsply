@@ -23,7 +23,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((host, port))
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-# HELLOメッセージ送信
+# joinメッセージ送信
 res = s.recv(1024).decode("utf-8")
 print("=============")
 print(res)
