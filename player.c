@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.14(河情報の設定)
+ * バージョン     ： 0.0.1.0.15(相手プレーヤの捨牌実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/06 22:47:29
+ * 最終更新日     ： 2024/07/07 15:53:02
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -35,9 +35,7 @@ void PlyActTakuStart(int tmp_ply_num){
 	// 結果表示
 	// ----------------------------------------
 	if( print_ply_mode > 0){
-		printf("================\n");
-		printf("ply_num = %d\n", ply_num);
-		printf("ply_num_shimo = %d\n", ply_num_shimo);
+		print_taku_start();
 	}
 
 }
@@ -104,16 +102,16 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	ply_naki_aka_count = 0;
 
 	// 河情報
-	ply_kawa_count = 0;
+	for(int tmp_ply=0; tmp_ply < PLAYER_MAX; tmp_ply++){
+		ply_kawa_count[tmp_ply]  = 0;
+		ply_riichi_stat[tmp_ply] = false;
+	}
 
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
 	if( print_ply_mode > 0){
-		printf("================\n");
-		printf("ie = %d\n", ie);
-		printf("ply_bakaze = %d\n", ply_bakaze);
-		printf("ply_zikaze = %d\n", ply_zikaze);
+		print_kyoku_start();
 	}
 
 }
@@ -161,9 +159,12 @@ void PlyActPostHaipai(){
 	// 結果表示
 	// ----------------------------------------
 	if( print_ply_mode > 0){
+
+		// 手牌表示(ライン表示)
+		print_tehai_line();
+
 		// 手牌表示
 		// print_tehai_hist();
-		print_tehai_line();
 
 		// 赤牌情報
 		print_tehai_aka();
@@ -274,9 +275,11 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 		}else{
 
 			// アクション確認 - 暗槓
-			if (ply_act == ACTTSUMO){
+			// MJAIの不具合により、暗槓アクションをしない
+		/*	if (ply_act == ACTTSUMO){
 				PlyChkAnkan(tmp_tsumo_hai, tmp_tsumo_aka);
 			}
+		*/
 
 			// アクション確認 - 加槓
 			if (ply_act == ACTTSUMO){
@@ -691,8 +694,9 @@ void PlySetTsumoSuteTehaiHist(){
 		}
 
 		// 河情報設定
-		kawa[ply_kawa_count] = ply_sute_hai;
-		ply_kawa_count++;
+		kawa[ply_num][ply_kawa_count[ply_num]]     = ply_sute_hai;
+		kawa_aka[ply_num][ply_kawa_count[ply_num]] = ply_sute_aka;
+		ply_kawa_count[ply_num]++;
 
 		// 捨牌の初期化
 		ply_sute_hai = 0;
@@ -791,9 +795,9 @@ void PlyChkFuriten(){
 	for(int tmp_i = 0; tmp_i < nakikoho_tbl_count; tmp_i++){
 		// ロンであること
 		if( nakikoho_tbl_act[tmp_i] == ACTRON){
-			for(int tmp_j=0; tmp_j < ply_kawa_count; tmp_j++){
+			for(int tmp_j=0; tmp_j < ply_kawa_count[ply_num]; tmp_j++){
 				// 捨て牌にあるなら
-				if(nakikoho_tbl_hai[tmp_i] == kawa[tmp_j]){
+				if(nakikoho_tbl_hai[tmp_i] == kawa[ply_num][tmp_j]){
 					ply_furiten_stat = true;
 				}
 			}
@@ -845,12 +849,17 @@ void PlyChkOthPlyTsumo(){
 /* ---------------------------------------------------------------------------------------------- */
 // 鳴き確認
 /* ---------------------------------------------------------------------------------------------- */
-void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai){
+void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka){
 
 	// 初期設定
 	ply_act = ACTNONAKI;
 	ply_naki_idx = 0;
 	ply_naki_aka_count = 0;
+
+	// 捨牌定義
+	kawa[suteply][ply_kawa_count[suteply]]     = hai;
+	kawa_aka[suteply][ply_kawa_count[suteply]] = tmp_aka;
+	ply_kawa_count[suteply]++;
 
 	// 処理開始
 	for( int tmp_i=0; tmp_i < nakikoho_tbl_count; tmp_i++){
@@ -1167,8 +1176,9 @@ void PlyActNakiSute(){
 
 
 	// 河情報設定
-	kawa[ply_kawa_count] = ply_sute_hai;
-	ply_kawa_count++;
+	kawa[ply_num][ply_kawa_count[ply_num]]     = ply_sute_hai;
+	kawa_aka[ply_num][ply_kawa_count[ply_num]] = ply_sute_aka;
+	ply_kawa_count[ply_num]++;
 
 	// 捨牌後の手牌状態確認
 	ChkTsumoNashiShanten();
@@ -1829,6 +1839,8 @@ void settehaitbl(){
 		}
 	}
 
+
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1852,7 +1864,37 @@ void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, in
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// ライン手牌情報表示
+// 表示処理：卓開始情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_taku_start(){
+
+	printf("================\n");
+	printf("ply_num = %d\n", ply_num);
+	printf("ply_num_shimo = %d\n", ply_num_shimo);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：局開始情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_kyoku_start(){
+
+	printf("================\n");
+	printf("ie = %d\n", ie);
+	printf("ply_bakaze = %d\n", ply_bakaze);
+	printf("ply_zikaze = %d\n", ply_zikaze);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：配牌情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_haipai(){
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：ライン手牌情報表示
 /* ---------------------------------------------------------------------------------------------- */
 void print_tehai_line(){
 
@@ -1884,7 +1926,7 @@ void print_tehai_line(){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// ヒストグラム手牌情報表示
+// 表示処理：ヒストグラム手牌情報表示
 /* ---------------------------------------------------------------------------------------------- */
 void print_tehai_hist(){
 
@@ -1899,7 +1941,7 @@ void print_tehai_hist(){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// 手牌赤牌枚数
+// 表示処理：赤牌枚数
 /* ---------------------------------------------------------------------------------------------- */
 void print_tehai_aka(){
 
@@ -1911,26 +1953,36 @@ void print_tehai_aka(){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// 河情報
+// 表示処理：河情報
 /* ---------------------------------------------------------------------------------------------- */
 void print_kawa_line(){
 
 	printf("================\n");
 
-	// 河枚数
-	printf("河枚数:%2d枚\n", ply_kawa_count);
+	for(int tmp_ply=0; tmp_ply < PLAYER_MAX; tmp_ply++){
 
-	// 河情報
-	for(int tmp_i=0; tmp_i < ply_kawa_count; tmp_i++){
-		printf("%2d ", kawa[tmp_i]);
+		// 河枚数
+		printf("ply_id:%d 河枚数:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
+
+		// 河情報
+		for(int tmp_i=0; tmp_i < ply_kawa_count[tmp_ply]; tmp_i++){
+
+			if(kawa_aka[tmp_ply][tmp_i] == true){
+				printf("[%2d] ", kawa[tmp_ply][tmp_i]);
+			}else{
+				printf("%2d ", kawa[tmp_ply][tmp_i]);
+			}
+		}
+
+		// 改行
+		printf("\n");
+
 	}
-
-	printf("\n");
 
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// 自摸有り手牌情報
+// 表示処理：自摸有り手牌情報
 /* ---------------------------------------------------------------------------------------------- */
 void print_tsumoari_tehai_info(){
 
@@ -1960,7 +2012,7 @@ void print_tsumoari_tehai_info(){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// 自摸無し手牌情報
+// 表示処理：自摸無し手牌情報
 /* ---------------------------------------------------------------------------------------------- */
 void print_tsumonashi_tehai_info(){
 
@@ -2056,7 +2108,7 @@ void print_tsumonashi_tehai_info(){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// 捨牌候補情報
+// 表示処理：捨牌候補情報
 /* ---------------------------------------------------------------------------------------------- */
 void print_sutekoho(int sutenum){
 
@@ -2112,6 +2164,16 @@ void print_sutekoho(int sutenum){
 
 	// 改行
 	printf("\n");
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：メッセージ表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_mes(char* tmp_mes){
+
+	// メッセージ表示
+	printf("%s", tmp_mes);
 
 }
 
@@ -2175,7 +2237,6 @@ void print_mentsu(LBMen men_stat, int men_hai, int men_idx, int aka_count){
 
 	// 牌番号
 	printf(" men_hai=%2d men_idx=%2d aka_count=%d", men_hai, men_idx, aka_count);
-
 
 }
 

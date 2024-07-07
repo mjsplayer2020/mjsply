@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.14(河情報の設定)
+ * バージョン     ： 0.0.1.0.15(相手プレーヤの捨牌実装)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/06 22:47:29
+ * 最終更新日     ： 2024/07/07 15:53:02
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -29,7 +29,6 @@ void set_ply_id(int tmp_ply_id){
 /* ---------------------------------------------------------------------------------------------- */
 // メイン処理
 /* ---------------------------------------------------------------------------------------------- */
-// void set_taku_stat_main(struct MJSClient *cli, char* tmp_res_mes, char* tmp_snd_mes){
 void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 
 	// ----------------------------------------
@@ -938,7 +937,7 @@ void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_s
 		// ----------------------------------------
 		// ply関数処理(鳴き確認)
 		// ----------------------------------------
-		PlyChkNaki(pinfo, tmp_ply_sute_id, cli_sute_hai);
+		PlyChkNaki(pinfo, tmp_ply_sute_id, cli_sute_hai, cli_sute_aka);
 
 		// ----------------------------------------
 		// メッセージ定義：鳴き確認(捨牌確認)
