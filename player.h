@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.17(「pinfo設定」関数の実装)
+ * バージョン     ： 0.0.1.0.18(キャラMJSPLAY_TEST実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/14 09:53:41
+ * 最終更新日     ： 2024/07/14 11:42:42
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -40,6 +40,7 @@ typedef enum {
 	PLYCHAR_NADESHIKO,                  // 09:プレーヤーキャラクター9
 	PLYCHAR_TSUBOMI,                    // 10:プレーヤーキャラクター10
 	PLYCHAR_SAKURA,                     // 11:プレーヤーサクラ
+	PLYCHAR_MJSPLY_TEST,                // 12:テスト用キャラクター
 
 } LBPlyChar;
 
@@ -100,84 +101,85 @@ typedef enum {
 	// 晒し牌情報
 	// -----------------------------
 
-	static int naki_count;                          // 鳴き合計面子数
-	static int ankan_count;                         // 暗槓合計面子数
-	static int kakan_count;                         // 加槓合計面子数
+	static int naki_count;                        // 鳴き合計面子数
+	static int ankan_count;                       // 暗槓合計面子数
+	static int kakan_count;                       // 加槓合計面子数
 
-	static LBMen naki_stat[MEN_MAX];                // 鳴き状態
-	static int naki_hai[MEN_MAX];                   // 鳴き牌
-	static int naki_idx[MEN_MAX];                   // チー時の頭牌
-	static int naki_aka[MEN_MAX];                   // 赤牌の数
+	static LBMen naki_stat[MEN_MAX];              // 鳴き状態
+	static int naki_hai[MEN_MAX];                 // 鳴き牌
+	static int naki_idx[MEN_MAX];                 // チー時の頭牌
+	static int naki_aka[MEN_MAX];                 // 赤牌の数
 
 	// -----------------------------
 	// 河情報
 	// -----------------------------
 
-	static int  ply_kawa_count[PLAYER_MAX];          // 河の枚数
-	static int  kawa[PLAYER_MAX][30];                // 河(捨牌情報)
-	static bool kawa_aka[PLAYER_MAX][30];            // 河の赤牌有無
+	static int  ply_kawa_count[PLAYER_MAX];       // 河の枚数
+	static int  kawa[PLAYER_MAX][30];             // 河(捨牌情報)
+	static bool kawa_aka[PLAYER_MAX][30];         // 河の赤牌有無
 
 	// プレーヤのリーチ状態
-	static bool ply_riichi_stat[PLAYER_MAX];         // プレーヤごとのリーチ状態
+	static bool ply_riichi_stat[PLAYER_MAX];      // プレーヤごとのリーチ状態
+	static int  ply_riichi_turn[PLAYER_MAX];      // リーチした巡目
 
 	// -----------------------------
 	// プレーヤーアクション情報
 	// -----------------------------
 
 	// アクションステータス
-	static LBPAct ply_act;                     // プレーヤーのアクションステータス
+	static LBPAct ply_act;                        // プレーヤーのアクションステータス
 
 	// ツモアクション
-	static int  ply_tsumo_hai;                 // ツモ牌
-	static bool ply_tsumo_aka;                 // 自摸牌の赤牌有無
+	static int  ply_tsumo_hai;                    // ツモ牌
+	static bool ply_tsumo_aka;                    // 自摸牌の赤牌有無
 
 	// 捨牌アクション
-	static int  ply_sute_hai;                  // 捨牌
-	static bool ply_sute_aka;                  // 捨牌の赤牌有無
+	static int  ply_sute_hai;                     // 捨牌
+	static bool ply_sute_aka;                     // 捨牌の赤牌有無
 
 	// 鳴きアクション
-	static int ply_naki_idx;                   // 鳴いた時の牌INDEX(カン宣言も含む)
-	static int ply_naki_aka_count;             // 鳴いた時の赤牌枚数
+	static int ply_naki_idx;                      // 鳴いた時の牌INDEX(カン宣言も含む)
+	static int ply_naki_aka_count;                // 鳴いた時の赤牌枚数
 
 	// -----------------------------
 	// 向聴数定義
 	// -----------------------------
 
-	static int shanten_normal;                 // 通常向聴数
-	static int shanten_kokushi;                // 国士向聴数
-	static int shanten_chitoi;                 // 七対向聴数
+	static int shanten_normal;                    // 通常向聴数
+	static int shanten_kokushi;                   // 国士向聴数
+	static int shanten_chitoi;                    // 七対向聴数
 
 	// -----------------------------
 	// 通常シャンテン計算
 	// -----------------------------
 
-	static int atama_count;                    // 雀頭の枚数(値は0又は1)
-	static int atama_hai;                      // 雀頭の牌番号
+	static int atama_count;                       // 雀頭の枚数(値は0又は1)
+	static int atama_hai;                         // 雀頭の牌番号
 
-	static int mentu_count;                    // 面子数
-	static LBMen mentu_stat[MEN_MAX];          // 面子状態
-	static int mentu_hai[MEN_MAX];             // 面子牌
+	static int mentu_count;                       // 面子数
+	static LBMen mentu_stat[MEN_MAX];             // 面子状態
+	static int mentu_hai[MEN_MAX];                // 面子牌
 
-	static int taatu_count;                    // 塔子数
-	static LBMen taatsu_stat[MEN_MAX];         // 塔子状態
-	static int taatsu_hai[MEN_MAX];            // 塔子牌
+	static int taatu_count;                       // 塔子数
+	static LBMen taatsu_stat[MEN_MAX];            // 塔子状態
+	static int taatsu_hai[MEN_MAX];               // 塔子牌
 
 	// -----------------------------
 	// 通常シャンテン計算・作業用
 	// -----------------------------
 
-	static int tmp_shanten;                    // (作業用)通常シャンテン
+	static int tmp_shanten;                       // (作業用)通常シャンテン
 
-	static int tmp_atama_count;                // 雀頭の枚数(値は0又は1)
-	static int tmp_atama_hai;                  // 雀頭の牌番号
+	static int tmp_atama_count;                   // 雀頭の枚数(値は0又は1)
+	static int tmp_atama_hai;                     // 雀頭の牌番号
 
-	static int tmp_mentu_count;                // 面子数
-	static LBMen tmp_mentu_stat[MEN_MAX];      // 面子状態
-	static int tmp_mentu_hai[MEN_MAX];         // 面子牌
+	static int tmp_mentu_count;                   // 面子数
+	static LBMen tmp_mentu_stat[MEN_MAX];         // 面子状態
+	static int tmp_mentu_hai[MEN_MAX];            // 面子牌
 
-	static int tmp_taatu_count;                // 塔子数
-	static LBMen tmp_taatsu_stat[MEN_MAX];     // 塔子状態
-	static int tmp_taatsu_hai[MEN_MAX];        // 塔子牌
+	static int tmp_taatu_count;                   // 塔子数
+	static LBMen tmp_taatsu_stat[MEN_MAX];        // 塔子状態
+	static int tmp_taatsu_hai[MEN_MAX];           // 塔子牌
 
 	// -----------------------------
 	// 捨牌候補・捨牌候補ごとの有効牌
@@ -246,7 +248,7 @@ typedef enum {
 	static char mes_buf[1024];
 
 	// 表示モード
-	static int print_ply_mode;                   // ply関数の表示モード(0:何も表示しない、1:plyの設定値を表示する)
+	static int print_ply_mode;                    // ply関数の表示モード(0:何も表示しない、1:plyの設定値を表示する)
 
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -263,7 +265,11 @@ typedef enum {
 
 	// 汎用確認
 	void init_param(); // パラメータ初期化
-	void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, int tmp_act_idx, int tmp_act_aka_count);  // pinfo定義
+	void set_pinfo(struct MJSPlyInfo *pinfo, 
+	               LBPAct tmp_ply_act, 
+	               int tmp_act_hai, 
+	               int tmp_act_idx, 
+	               int tmp_act_aka_count);  // pinfo定義
 
 	// 1-1.卓開始・終了
 	void PlyActTakuStart(int tmp_ply_num);
@@ -362,6 +368,7 @@ typedef enum {
 	/* ----------------------------- */
 
 	// 汎用関数(卓情報)
+	void print_version_info();          // バージョン情報
 	void print_taku_start();            // 卓開始情報
 	void print_kyoku_start();           // 局開始情報
 	void print_haipai(int tmp_tsumo_hai, bool tmp_tsumo_aka);    // 配牌情報
@@ -379,19 +386,18 @@ typedef enum {
 	void print_tsumonashi_tehai_info(); // 自摸無し手牌の詳細銃砲
 	void print_sutekoho(int sutenum);   // 手牌ごとの詳細銃砲
 
-	// 汎用関数(パーツ)
+	// 汎用関数(一般処理)
 	void print_mes(char* tmp_mes);      // メッセージ表示
 	void print_separator();             // 区切り線表示
 	void print_cr();                    // 改行表示
-	void print_version_info();          // バージョン情報
-	void print_char_info();             // キャラ情報
-	void print_pinfo_act(struct MJSPlyInfo *pinfo);         // pinfoアクション
 
-	// 面子情報
+	// 汎用関数(パーツ)
+	void print_char_info();             // キャラ情報
+	void print_pinfo_act(struct MJSPlyInfo *pinfo);         // pinfoアクション詳細表示
 	void print_mentsu(LBMen men_stat, 
 	                 int men_hai, 
 	                 int men_idx, 
-	                 int aka_count); 
+	                 int aka_count);    // 面子情報
 
 #endif/* PLY_H_INCLUDED */
 

@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.17(「pinfo設定」関数の実装)
+ * バージョン     ： 0.0.1.0.18(キャラMJSPLAY_TEST実装)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/14 09:53:41
+ * 最終更新日     ： 2024/07/14 11:42:42
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -21,11 +21,6 @@
 void PlyActTakuStart(int tmp_ply_num){
 
 	// -----------------------------
-	// プレーヤタイプ設定
-	// -----------------------------
-	ply_type = PLYCHAR_NONAME;
-
-	// -----------------------------
 	// プレーヤ番号
 	// -----------------------------
 
@@ -35,16 +30,26 @@ void PlyActTakuStart(int tmp_ply_num){
 	// 下家のプレーヤ番号を設定
 	ply_num_shimo = ( tmp_ply_num + 3 ) % 4;
 
+
 	// -----------------------------
+	// 内部初期化
+	// -----------------------------
+
+	// プレーヤタイプ設定
+	ply_type = PLYCHAR_MJSPLY_TEST;
+
 	// 結果表示のモード設定
-	// -----------------------------
-	print_ply_mode = 1;
+	print_ply_mode = 0;
 
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
+
+	// バージョン情報
+	print_version_info();
+
+	// 卓開始情報
 	if( print_ply_mode > 0){
-		// 卓開始情報
 		print_taku_start();
 	}
 
@@ -310,7 +315,7 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 	// ply_sute_aka = ply_tsumo_aka;
 
 	// ----------------------------------------
-	// ★pinfo定義：自摸和了の場合
+	// pinfo定義：自摸和了の場合
 	// ----------------------------------------
 	if ( ply_act == ACTTSUMOAGARI){
 
@@ -322,26 +327,8 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 			set_pinfo(pinfo, ply_act, ply_tsumo_hai, ply_tsumo_hai, 0);
 		}
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義(自摸牌)
-		pinfo->act_hai = ply_tsumo_hai;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_tsumo_hai;
-
-		// 赤牌設定
-		if(ply_tsumo_aka == true){
-			pinfo->act_aka_count = 1;
-		}else{
-			pinfo->act_aka_count = 0;
-		}
-*/
-
 	// ----------------------------------------
-	// ★pinfo定義：暗槓の場合
+	// pinfo定義：暗槓の場合
 	// ----------------------------------------
 	}else if( ply_act == ACTANKAN){
 
@@ -357,52 +344,16 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 			set_pinfo(pinfo, ply_act, ply_naki_idx, ply_naki_idx, 0);
 		}
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義(自摸牌)
-		pinfo->act_hai = ply_naki_idx;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_naki_idx;
-
-		// 晒し処理(赤牌)
-		if( ply_naki_idx == MAN5NUM || 
-		    ply_naki_idx == PIN5NUM || 
-		    ply_naki_idx == SOU5NUM ){
-
-			// 赤牌設定
-			pinfo->act_aka_count = 1;
-		}else{
-			pinfo->act_aka_count = 0;
-		}
-*/
-
 	// ----------------------------------------
-	// ★pinfo定義：加槓の場合
+	// pinfo定義：加槓の場合
 	// ----------------------------------------
 	}else if( ply_act == ACTKAKAN){
 
 		// pinfo定義：加槓の場合
 		set_pinfo(pinfo, ply_act, ply_naki_idx, ply_naki_idx, ply_naki_aka_count);
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義(自摸牌)
-		pinfo->act_hai = ply_naki_idx;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_naki_idx;
-
-		// 赤牌設定
-		pinfo->act_aka_count = ply_naki_aka_count;
-*/
-
 	// ----------------------------------------
-	// ★pinfo定義：捨牌、自摸切り
+	// pinfo定義：捨牌、自摸切り
 	// ----------------------------------------
 	}else{
 
@@ -413,31 +364,6 @@ void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka
 			set_pinfo(pinfo, ply_act, ply_sute_hai, ply_sute_hai, 0);
 		}
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義
-		pinfo->act_hai = ply_sute_hai;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_sute_hai;
-
-		// 赤牌設定
-		if(ply_sute_aka == true){
-			pinfo->act_aka_count = 1;
-		}else{
-			pinfo->act_aka_count = 0;
-		}
-*/
-
-	}
-
-	// ----------------------------------------
-	// ★pinfo情報表示
-	// ----------------------------------------
-	if( print_ply_mode > 0){
-		// print_pinfo_act(pinfo);
 	}
 
 }
@@ -1150,73 +1076,31 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka){
 	}*/
 
 	// ----------------------------------------
-	// ★pinfo定義：ロン和了
+	// pinfo定義：ロン和了
 	// ----------------------------------------
 	if ( ply_act == ACTRON){
 
 		// pinfo定義：ロン和了
 		set_pinfo(pinfo, ply_act, ply_naki_idx, ply_naki_idx, ply_naki_aka_count);
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義(鳴きINDEX牌)
-		pinfo->act_hai = ply_naki_idx;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_naki_idx;
-
-		// 赤牌判定
-		pinfo->act_aka_count = ply_naki_aka_count;
-*/
-
 	// ----------------------------------------
-	// ★pinfo定義：ポン
+	// pinfo定義：ポン
 	// ----------------------------------------
 	}else if( ply_act == ACTPON){
 
 		// pinfo定義：ロン和了
 		set_pinfo(pinfo, ply_act, ply_naki_idx, ply_naki_idx, ply_naki_aka_count);
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義(鳴きINDEX牌)
-		pinfo->act_hai = ply_naki_idx;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_naki_idx;
-
-		// 赤牌判定
-		pinfo->act_aka_count = ply_naki_aka_count;
-*/
-
 	// ----------------------------------------
-	// ★pinfo定義：チー
+	// pinfo定義：チー
 	// ----------------------------------------
 	}else if( ply_act == ACTCHI){
 
 		// pinfo定義：ロン和了
 		set_pinfo(pinfo, ply_act, hai, ply_naki_idx, ply_naki_aka_count);
 
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義(鳴きINDEX牌)
-		pinfo->act_hai = hai;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_naki_idx;
-
-		// 赤牌判定
-		pinfo->act_aka_count = ply_naki_aka_count;
-*/
-
 	// ----------------------------------------
-	// ★pinfo定義：その他(鳴き無し)
+	// pinfo定義：その他(鳴き無し)
 	// ----------------------------------------
 	}else{
 
@@ -1224,27 +1108,6 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka){
 		// set_pinfo(pinfo, ply_act, 0, 0, 0);
 		set_pinfo(pinfo, ACTNONAKI, 0, 0, 0);
 
-/*
-		// アクション定義
-		pinfo->ply_act = ACTNONAKI;
-
-		// アクション牌の定義(鳴きINDEX牌)
-		pinfo->act_hai = 0;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = 0;
-
-		// 赤牌判定
-		pinfo->act_aka_count = 0;
-*/
-
-	}
-
-	// ----------------------------------------
-	// ★pinfo情報表示
-	// ----------------------------------------
-	if( print_ply_mode > 0){
-//		print_pinfo_act(pinfo);
 	}
 
 }
@@ -1342,7 +1205,7 @@ void PlyChkNakiSute(struct MJSPlyInfo *pinfo){
 	ply_act = ACTNAKISUTE;
 
 	// ----------------------------------------
-	// ★pinfo設定
+	// pinfo設定
 	// ----------------------------------------
 
 	if(ply_sute_aka == true){
@@ -1350,31 +1213,6 @@ void PlyChkNakiSute(struct MJSPlyInfo *pinfo){
 		set_pinfo(pinfo, ply_act, ply_sute_hai, ply_sute_hai, 1);
 	}else{
 		set_pinfo(pinfo, ply_act, ply_sute_hai, ply_sute_hai, 0);
-	}
-
-/*
-		// アクション定義
-		pinfo->ply_act = ply_act;
-
-		// アクション牌の定義
-		pinfo->act_hai = ply_sute_hai;
-
-		// 牌INDEXの定義
-		pinfo->act_idx = ply_sute_hai;
-
-		// 赤牌設定
-		if(ply_sute_aka == true){
-			pinfo->act_aka_count = 1;
-		}else{
-			pinfo->act_aka_count = 0;
-		}
-*/
-
-	// ----------------------------------------
-	// ★pinfo情報表示
-	// ----------------------------------------
-	if( print_ply_mode > 0){
-//		print_pinfo_act(pinfo);
 	}
 
 }
@@ -2069,9 +1907,9 @@ void settehaitbl(){
 void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, int tmp_act_idx, int tmp_act_aka_count){
 
 	// 値代入
-	pinfo->ply_act = tmp_ply_act;             // アクション
-	pinfo->act_hai = tmp_act_hai;
-	pinfo->act_idx = tmp_act_idx;
+	pinfo->ply_act = tmp_ply_act;             // アクションステータス
+	pinfo->act_hai = tmp_act_hai;             // アクション牌
+	pinfo->act_idx = tmp_act_idx;             // アクション牌のINDEX
 	pinfo->act_aka_count = tmp_act_aka_count; // 赤牌枚数
 
 	// ----------------------------------------
@@ -2089,7 +1927,33 @@ void set_pinfo(struct MJSPlyInfo *pinfo, LBPAct tmp_ply_act, int tmp_act_hai, in
 void print_mes(char* tmp_mes){
 
 	// メッセージ表示
-	printf("%s", tmp_mes);
+	fprintf(stderr, "%s", tmp_mes);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：区切り線表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_separator(){
+
+	// 区切り線
+	printf("================\n");
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：卓開始情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_version_info(){
+
+	// 区切り線
+	print_separator();
+
+	// バージョン情報
+	fprintf(stderr, "Mjsply Version %d.%d.%d.%d.%d\n", VER1,VER2,VER3,VER4,VER5);
+
+	// プレーヤーキャラクター情報
+	print_char_info();
 
 }
 
@@ -2099,16 +1963,7 @@ void print_mes(char* tmp_mes){
 void print_taku_start(){
 
 	// 区切り線
-	printf("================\n");
-
-	// バージョン情報
-	printf("Mjsply Version %d.%d.%d.%d.%d\n", VER1,VER2,VER3,VER4,VER5);
-
-	// プレーヤーキャラクター情報
-	printf("CHAR : MJSPLAY_TEST\n");
-
-	// 区切り線
-	printf("================\n");
+	print_separator();
 
 	// ply_id(起家)情報
 	printf("ply_id = %d\n", ply_num);
@@ -2121,7 +1976,9 @@ void print_taku_start(){
 /* ---------------------------------------------------------------------------------------------- */
 void print_kyoku_start(){
 
-	printf("================\n");
+	// 区切り線
+	print_separator();
+
 	printf("ie = %d\n", ie);
 	printf("ply_bakaze = %d\n", ply_bakaze);
 	printf("ply_zikaze = %d\n", ply_zikaze);
@@ -2152,7 +2009,7 @@ void print_tehai_line(){
 	int tmp_count=0;
 
 	// 手牌表示
-	printf("================\n");
+	print_separator();
 	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
 		for(int tmp_j=0; tmp_j < tehai[tmp_i]; tmp_j++){
 			printf("%2d ", tmp_i);
@@ -2181,7 +2038,9 @@ void print_tehai_line(){
 void print_tehai_hist(){
 
 	// 区切り線
-	printf("================\n");
+	print_separator();
+
+	// ヒストグラム表示
 	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
 		printf("%d ", tehai[tmp_i]);
 		if(tmp_i==0 || tmp_i==10 || tmp_i==20 || tmp_i==30 || tmp_i==37){
@@ -2197,7 +2056,7 @@ void print_tehai_hist(){
 void print_tehai_aka(){
 
 	// 区切り線
-	printf("================\n");
+	print_separator();
 	for(int tmp_i=0; tmp_i < 3; tmp_i++){
 		printf("aka_count[%d] = %d\n", tmp_i, aka_count[tmp_i]);
 	}
@@ -2210,7 +2069,7 @@ void print_tehai_aka(){
 void print_tsumo_hai(){
 
 	// 区切り線
-	printf("================\n");
+	print_separator();
 	printf("自摸牌:%2d\n", ply_tsumo_hai);
 
 	// 自摸赤
@@ -2228,12 +2087,16 @@ void print_tsumo_hai(){
 void print_kawa_line(){
 
 	// 区切り線
-	printf("================\n");
+	print_separator();
 
 	for(int tmp_ply=0; tmp_ply < PLAYER_MAX; tmp_ply++){
 
-		// 河枚数
-		printf("ply_id:%d 河枚数:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
+		// リーチ情報
+		if( ply_riichi_stat[tmp_ply] == true){
+			printf("id:%d リーチ:true 河:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
+		}else{
+			printf("id:%d リーチ:false河:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
+		}
 
 		// 河情報
 		for(int tmp_i=0; tmp_i < ply_kawa_count[tmp_ply]; tmp_i++){
@@ -2258,7 +2121,7 @@ void print_kawa_line(){
 void print_ori_info(){
 
 	// 区切り線
-	printf("================\n");
+	print_separator();
 
 	// オリステータスであるなら
 	if (ply_tehai_ori_stat == true){
@@ -2286,7 +2149,7 @@ void print_ori_info(){
 void print_tsumoari_tehai_info(){
 
 	// 区切り線
-	printf("================\n");
+	print_separator();
 
 	// 自摸有り表記
 	printf("手牌情報：自摸有り\n");
@@ -2318,7 +2181,7 @@ void print_tsumoari_tehai_info(){
 void print_tsumonashi_tehai_info(){
 
 	// 自摸あり表記
-	printf("================\n");
+	print_separator();
 	printf("手牌情報：自摸無し\n");
 
 	// 有効牌
@@ -2469,12 +2332,28 @@ void print_sutekoho(int sutenum){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
+// 表示処理：キャラ情報
+/* ---------------------------------------------------------------------------------------------- */
+void print_char_info(){
+
+	// キャラ表示
+	if( ply_type == PLYCHAR_NONAME ){
+		fprintf(stderr, "CHAR : NONAME_CHAR\n");
+	}else if( ply_type == PLYCHAR_MJSPLY_TEST ){
+		fprintf(stderr, "CHAR : MJSPLAY_TEST\n");
+	}else{
+		fprintf(stderr, "CHAR : UNKNOWN_CHAR\n");
+	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
 // 表示処理：pinfoアクション
 /* ---------------------------------------------------------------------------------------------- */
 void print_pinfo_act(struct MJSPlyInfo *pinfo){
 
 	// アクション表示
-	printf("================\n");
+	print_separator();
 	if(pinfo->ply_act == ACTTSUMOAGARI){
 		printf("アクション：自摸和了\n");
 	}else if(pinfo->ply_act == ACTSUTE){
