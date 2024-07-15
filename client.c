@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.16(手牌オリの実装準備)
+ * バージョン     ： 0.0.1.0.19(局情報、ドラ情報)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/13 15:06:12
+ * 最終更新日     ： 2024/07/15 16:18:29
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -16,18 +16,20 @@
 #include "client.h"
 
 /* ---------------------------------------------------------------------------------------------- */
-// メイン処理
+// メイン処理：ply_id初期化処理
 /* ---------------------------------------------------------------------------------------------- */
 void set_ply_id(int tmp_ply_id){
 
 	// 卓開始処理(Ply_id設定)
 	cli_ply_id = tmp_ply_id;
-	PlyActTakuStart(cli_ply_id);
+
+	// 卓開始処理
+	PlyActTakuStart(cli_ply_id, 25000, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
 
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-// メイン処理
+// メイン処理：送信メッセージの決定
 /* ---------------------------------------------------------------------------------------------- */
 void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 
@@ -382,7 +384,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_type_startgame(cli, tmp_i);
 
 				// 卓開始処理
-				PlyActTakuStart(cli_ply_id);
+				PlyActTakuStart(cli_ply_id, 25000, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -660,8 +662,8 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	int  tmp_ply_ie;
 	int  tmp_kyoku;
 	int  tmp_kaze;
-	int  tmp_dora_hai;
-	bool tmp_dora_aka;
+	int  tmp_dora_hai = 0;
+	bool tmp_dora_aka = false;
 
 	// 配牌
 	int  haipai_point=0;
@@ -676,9 +678,8 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	tmp_kaze = get_hainum(cli->wk_str[tmp_wk_num+3] );
 
 	// 局
-/*	tmp_kyoku = get_hainum(cli->wk_str[tmp_wk_num+3] ) - 31 +         // E(東場)かS(南場)の文字列確認
+	tmp_kyoku = get_hainum(cli->wk_str[tmp_wk_num+3] ) - 31 +         // E(東場)かS(南場)の文字列確認
 	            atoi(cli->wk_str[tmp_wk_num+5]) - 1;                  // 局情報取得
-*/
 
 	// ----------------------------------------
 	// 局情報定義
@@ -693,9 +694,10 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// ----------------------------------------
 	// ドラ定義
 	// ----------------------------------------
-/*
+
 	// ドラ表示牌
 	tmp_dora_hai = get_hainum(cli->wk_str[tmp_wk_num+13]);
+
 
 	// 赤牌確認
 	if (tmp_dora_hai > 100){
@@ -704,7 +706,7 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	}else{
 		tmp_dora_aka = false;
 	}
-*/
+
 	// ----------------------------------------
 	// 手番設定(親の席番号指定)
 	// ----------------------------------------
@@ -713,15 +715,10 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// 家算出
 	tmp_ply_ie = ( 4 + cli_ply_id - tmp_ply_oya) % 4;
 
-	// 結果表示
-/*	printf("================\n");
-	printf("tmp_kyoku = %d\n", tmp_kyoku);
-	printf("tmp_ply_oya = %d\n", tmp_ply_oya);*/
-
 	// ----------------------------------------
 	// pinfo設定(局開始)
 	// ----------------------------------------
-	PlyActKyokuStart(tmp_kaze, tmp_ply_ie);
+	PlyActKyokuStart(tmp_kyoku, tmp_kaze, tmp_ply_ie, tmp_dora_hai, tmp_dora_aka);
 
 	// ----------------------------------------
 	// 配牌設定

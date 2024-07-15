@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.18(キャラMJSPLAY_TEST実装)
+ * バージョン     ： 0.0.1.0.19(局情報、ドラ情報)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/14 11:42:42
+ * 最終更新日     ： 2024/07/15 16:18:29
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -71,9 +71,14 @@ typedef enum {
 	static int ply_num_shimo;                       // 下家のプレーヤ番号
 
 	// プレーヤの家
+	static int kyoku;                               // 局
 	static int ie;                                  // 家情報 東家：0、南家：1、ie=2でプレーヤが西家
 	static int ply_bakaze;                          // プレーヤの場風牌の牌番号(東家 = 0、南家 = 1)
 	static int ply_zikaze;                          // プレーヤの自風牌の牌番号
+
+	// ドラ情報
+	static int  dora_hai[DORA_MAX];
+	static bool dora_aka[DORA_MAX];
 
 	// 赤牌情報
 	static int max_aka_count[AKA_SHUBETSU_MAX];     // 最大赤牌枚数
@@ -272,11 +277,17 @@ typedef enum {
 	               int tmp_act_aka_count);  // pinfo定義
 
 	// 1-1.卓開始・終了
-	void PlyActTakuStart(int tmp_ply_num);
+	void PlyActTakuStart(int tmp_ply_num,         // ply_idの決定
+	                     int tmp_init_score,      // 卓開始時点での持ち得点
+	                     int tmp_aka_man_max,     // 萬子の赤牌枚数
+	                     int tmp_aka_pin_max,     // 筒子の赤牌枚数
+	                     int tmp_aka_sou_max);    // 索子の赤牌枚数
+
+
 	void PlyActTakuEnd();
 
 	// 1-2.局開始・終了
-	void PlyActKyokuStart(int tmp_kaze, int tmp_ie);
+	void PlyActKyokuStart(int tmp_kyoku, int tmp_kaze, int tmp_ie, int tmp_dora, int tmp_dora_aka);
 	void PlyActKyokuEnd();
 
 	// 2-1.配牌処理

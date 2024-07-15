@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.18(キャラMJSPLAY_TEST実装)
+ * バージョン     ： 0.0.1.0.19(局情報、ドラ情報)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/14 11:42:42
+ * 最終更新日     ： 2024/07/15 16:18:29
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -18,7 +18,7 @@
 /* ---------------------------------------------------------------------------------------------- */
 // 卓開始処理
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActTakuStart(int tmp_ply_num){
+void PlyActTakuStart(int tmp_ply_num, int tmp_init_score, int tmp_aka_man_max, int tmp_aka_pin_max, int tmp_aka_sou_max){
 
 	// -----------------------------
 	// プレーヤ番号
@@ -30,6 +30,14 @@ void PlyActTakuStart(int tmp_ply_num){
 	// 下家のプレーヤ番号を設定
 	ply_num_shimo = ( tmp_ply_num + 3 ) % 4;
 
+	// -----------------------------
+	// 赤牌情報定義
+	// -----------------------------
+
+	// 赤牌最大数の設定
+	max_aka_count[0] = tmp_aka_man_max;
+	max_aka_count[1] = tmp_aka_pin_max;
+	max_aka_count[2] = tmp_aka_sou_max;
 
 	// -----------------------------
 	// 内部初期化
@@ -58,12 +66,17 @@ void PlyActTakuStart(int tmp_ply_num){
 /* ---------------------------------------------------------------------------------------------- */
 // 局開始処理
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
+void PlyActKyokuStart(int tmp_kyoku, int tmp_kaze, int tmp_ie, int tmp_dora, int tmp_dora_aka){
 
 	// 家情報
-	ie = tmp_ie;
-	ply_bakaze = tmp_kaze;
-	ply_zikaze = TONNUM + ie;  // 自風の牌番号
+	kyoku = tmp_kyoku;             // 局
+	ie = tmp_ie;                   // 家のプレーヤー番号
+	ply_bakaze = tmp_kaze;         // 場風の牌番号
+	ply_zikaze = TONNUM + ie;      // 自風の牌番号
+
+	// ドラ情報
+	dora_hai[0] = tmp_dora;
+	dora_aka[0] = tmp_dora_aka;
 
 	// 残り枚数(自摸合計数)
 	kyoku_tsumo_count = 0;
@@ -72,11 +85,6 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_ie){
 	for(int i=0; i< PAI_MAX; i++){
 		tehai[i] = 0;
 	}
-
-	// 赤牌最大数の設定
-	max_aka_count[0] = 1;
-	max_aka_count[1] = 1;
-	max_aka_count[2] = 1;
 
 	// 赤牌初期化
 	aka_count[0] = 0;
@@ -1969,6 +1977,11 @@ void print_taku_start(){
 	printf("ply_id = %d\n", ply_num);
 	printf("ply_id_shimo = %d\n", ply_num_shimo);
 
+	// 赤牌情報
+	for(int tmp_i = 0; tmp_i < 3; tmp_i++){
+		printf("max_aka_count[%d] = %d\n", tmp_i, max_aka_count[tmp_i]);
+	}
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1979,9 +1992,17 @@ void print_kyoku_start(){
 	// 区切り線
 	print_separator();
 
+	// 局情報
+	printf("kyoku = %d\n", kyoku);
 	printf("ie = %d\n", ie);
-	printf("ply_bakaze = %d\n", ply_bakaze);
-	printf("ply_zikaze = %d\n", ply_zikaze);
+	printf("ply_bakaze  = %d\n", ply_bakaze);
+	printf("ply_zikaze  = %d\n", ply_zikaze);
+	printf("dora_hai[0] = %d\n", dora_hai[0]);
+	if(dora_aka[0] == true){
+		printf("dora_aka[0] = true\n");
+	}else{
+		printf("dora_aka[0] = false\n");
+	}
 
 }
 
