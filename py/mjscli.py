@@ -1,11 +1,11 @@
 # ---------------------------------------------------------------------------------------------- 
 # 
 # プログラム概要 ： 麻雀AI：MJSakuraモジュール
-# バージョン     ： 0.0.1.0.11(py.bot修正)
+# バージョン     ： 0.0.1.0.21(start_kyoku値読み込み処理の見直し)
 # プログラム名   ： mjscli.py
 # 処理概要       ： Mjai送信処理ツール
 # Ver0.0.1作成日 ： 2024/06/22 20:30:48
-# 最終更新日     ： 2024/06/29 15:53:39
+# 最終更新日     ： 2024/07/20 17:00:20
 # 
 # Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
 # 
@@ -34,11 +34,11 @@ while True:
   res = s.recv(1024).decode("utf-8")
   if len(res) <= 0:
     break
-  print("================")
-  print("RES->:")
-  print(res)
+#  print("================")
+#  print("RES->:")
+#  print(res)
   snd = mjs.get_message(res)
-  print("================")
-  print("<-SND:")
-  print(snd)
+#  print("================")
+#  print("<-SND:")
+#  print(snd)
   s.send(snd.encode('utf8'))

@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.15(相手プレーヤの捨牌実装)
+ * バージョン     ： 0.0.1.0.23(mjai.app実装版)
  * プログラム名   ： mjs
  * ファイル名     ： client.h
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/07 15:53:02
+ * 最終更新日     ： 2024/07/21 12:34:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -32,15 +32,17 @@
 	static bool cli_sute_aka;        // 捨牌赤
 
 	// 赤牌情報
-	static int cli_max_aka_count[AKA_SHUBETSU_MAX];     // 最大赤牌枚数
+	static int cli_max_aka_count[AKA_SHUBETSU_MAX];         // 最大赤牌枚数
 
+	// 表示モード
+	static int print_cli_mes_mode;                          // メッセージ表示レベル設定
 
 // 構造体定義
 struct MJSClient{
 
 	// MJAIメッセージ解析用バッファ
 	int  wk_str_count;        // 作業用文字配列の総数
-	char wk_str[128][64];     // 作業用文字配列
+	char wk_str[256][64];     // 作業用文字配列
 
 };
 
@@ -111,6 +113,13 @@ struct MJSClient{
 	// -----------------------------
 	int  get_hainum(char hai_str[]);                                  // 牌番号取得
 	void Get_haichr(int hai_num, bool hai_aka, char hai_str[]);       // Mjai向け牌文字取得
+
+	/* ----------------------------- */
+	// 表示関数：クライアント関数
+	/* ----------------------------- */
+	void print_cli_res_mes(char* tmp_mes);             // 受信メッセージ表示
+	void print_cli_snd_mes(char* tmp_mes);             // 送信メッセージ表示
+	void print_cli_wk_param(struct MJSClient *cli);    // cli構造体表示
 
 #endif /* CLIENT_H_INCLUDED */
 

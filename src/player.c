@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.19(局情報、ドラ情報)
+ * バージョン     ： 0.0.1.0.21(start_kyoku値読み込み処理の見直し)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/15 16:18:29
+ * 最終更新日     ： 2024/07/20 17:00:20
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -18,17 +18,27 @@
 /* ---------------------------------------------------------------------------------------------- */
 // 卓開始処理
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActTakuStart(int tmp_ply_num, int tmp_init_score, int tmp_aka_man_max, int tmp_aka_pin_max, int tmp_aka_sou_max){
+void PlyActTakuStart(int tmp_ply_id, int tmp_init_score, int tmp_aka_man_max, int tmp_aka_pin_max, int tmp_aka_sou_max){
+
+	// -----------------------------
+	// 内部変数初期化
+	// -----------------------------
+
+	// 結果表示モードの設定
+	print_ply_mode = 0;
+
+	// プレーヤタイプ設定
+	ply_type = PLYCHAR_MJSPLY_TEST;
 
 	// -----------------------------
 	// プレーヤ番号
 	// -----------------------------
 
 	// 自分のプレーヤ番号を設定
-	ply_num = tmp_ply_num;
+	ply_id = tmp_ply_id;
 
 	// 下家のプレーヤ番号を設定
-	ply_num_shimo = ( tmp_ply_num + 3 ) % 4;
+	ply_id_shimo = ( tmp_ply_id + 3 ) % 4;
 
 	// -----------------------------
 	// 赤牌情報定義
@@ -39,16 +49,6 @@ void PlyActTakuStart(int tmp_ply_num, int tmp_init_score, int tmp_aka_man_max, i
 	max_aka_count[1] = tmp_aka_pin_max;
 	max_aka_count[2] = tmp_aka_sou_max;
 
-	// -----------------------------
-	// 内部初期化
-	// -----------------------------
-
-	// プレーヤタイプ設定
-	ply_type = PLYCHAR_MJSPLY_TEST;
-
-	// 結果表示のモード設定
-	print_ply_mode = 0;
-
 	// ----------------------------------------
 	// 結果表示
 	// ----------------------------------------
@@ -57,16 +57,16 @@ void PlyActTakuStart(int tmp_ply_num, int tmp_init_score, int tmp_aka_man_max, i
 	print_version_info();
 
 	// 卓開始情報
-	if( print_ply_mode > 0){
+//	if( print_ply_mode > 0){
 		print_taku_start();
-	}
+//	}
 
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 // 局開始処理
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActKyokuStart(int tmp_kyoku, int tmp_kaze, int tmp_ie, int tmp_dora, int tmp_dora_aka){
+void PlyActKyokuStart(int tmp_kaze, int tmp_kyoku, int tmp_honba, int tmp_riichibo, int tmp_ie, int tmp_dora, int tmp_dora_aka){
 
 	// 家情報
 	kyoku = tmp_kyoku;             // 局
@@ -488,13 +488,19 @@ void PlyChkTsumoSute(){
 		// アクションの指定
 		ply_act = ACTSUTE;
 
-		// 赤牌設定
-		// TODO:赤牌の優先順位を実装する
-		if( ( ply_sute_hai == MAN5NUM && aka_count[0] > 0) || 
+/*		if( ( ply_sute_hai == MAN5NUM && aka_count[0] > 0) || 
 		    ( ply_sute_hai == PIN5NUM && aka_count[1] > 0) || 
-		    ( ply_sute_hai == SOU5NUM && aka_count[2] > 0) ){
+		    ( ply_sute_hai == SOU5NUM && aka_count[2] > 0) ){ 
+*/
+
+		// 赤牌設定
+		if( ( ply_sute_hai ==  5 && tehai[ply_sute_hai] == aka_count[0]) || 
+		    ( ply_sute_hai == 15 && tehai[ply_sute_hai] == aka_count[1]) || 
+		    ( ply_sute_hai == 25 && tehai[ply_sute_hai] == aka_count[2]) ){
+			// 赤牌有効
 			ply_sute_aka=true;
 		}else{
+			// 赤牌無効
 			ply_sute_aka=false;
 		}
 
@@ -801,9 +807,9 @@ void PlySetTsumoSuteTehaiHist(){
 		}
 
 		// 河情報設定
-		kawa[ply_num][ply_kawa_count[ply_num]]     = ply_sute_hai;
-		kawa_aka[ply_num][ply_kawa_count[ply_num]] = ply_sute_aka;
-		ply_kawa_count[ply_num]++;
+		kawa[ply_id][ply_kawa_count[ply_id]]     = ply_sute_hai;
+		kawa_aka[ply_id][ply_kawa_count[ply_id]] = ply_sute_aka;
+		ply_kawa_count[ply_id]++;
 
 		// 捨牌の初期化
 		ply_sute_hai = 0;
@@ -902,9 +908,9 @@ void PlyChkFuriten(){
 	for(int tmp_i = 0; tmp_i < nakikoho_tbl_count; tmp_i++){
 		// ロンであること
 		if( nakikoho_tbl_act[tmp_i] == ACTRON){
-			for(int tmp_j=0; tmp_j < ply_kawa_count[ply_num]; tmp_j++){
+			for(int tmp_j=0; tmp_j < ply_kawa_count[ply_id]; tmp_j++){
 				// 捨て牌にあるなら
-				if(nakikoho_tbl_hai[tmp_i] == kawa[ply_num][tmp_j]){
+				if(nakikoho_tbl_hai[tmp_i] == kawa[ply_id][tmp_j]){
 					ply_furiten_stat = true;
 				}
 			}
@@ -956,12 +962,12 @@ void PlyChkOthPlyTsumo(){
 /* ---------------------------------------------------------------------------------------------- */
 // 他プレーヤの自摸
 /* ---------------------------------------------------------------------------------------------- */
-void PlyChkOthPlyRiichi(int tmp_ply_num){
+void PlyChkOthPlyRiichi(int tmp_ply_id){
 
 	// ----------------------------------------
 	// 自摸回数カウント
 	// ----------------------------------------
-	ply_riichi_stat[tmp_ply_num] = true;
+	ply_riichi_stat[tmp_ply_id] = true;
 
 }
 
@@ -1035,7 +1041,7 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka){
 			// ----------------------------------------
 			// チー確認
 			// ----------------------------------------
-			}else if( nakikoho_tbl_yesno[tmp_i] == true && nakikoho_tbl_act[tmp_i] == ACTCHI && suteply == ply_num_shimo){
+			}else if( nakikoho_tbl_yesno[tmp_i] == true && nakikoho_tbl_act[tmp_i] == ACTCHI && suteply == ply_id_shimo){
 
 				// アクション設定
 				ply_act = ACTCHI;
@@ -1123,10 +1129,10 @@ void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka){
 /* ---------------------------------------------------------------------------------------------- */
 // 鳴きアクション
 /* ---------------------------------------------------------------------------------------------- */
-void PlyActNaki(struct MJSPlyInfo *pinfo, int naki_ply_num, LBPAct naki_ply_act, int hai, int chi_hai_idx, int naki_aka_count){
+void PlyActNaki(struct MJSPlyInfo *pinfo, int naki_ply_id, LBPAct naki_ply_act, int hai, int chi_hai_idx, int naki_aka_count){
 
 	// 鳴きプレーヤー確認(鳴いたのが自分であれば)
-	if( ply_num == naki_ply_num ){
+	if( ply_id == naki_ply_id ){
 
 		// ----------------------------------------
 		// 晒し牌設定 - ポンの場合
@@ -1199,13 +1205,20 @@ void PlyChkNakiSute(struct MJSPlyInfo *pinfo){
 	// 捨牌設定
 	ply_sute_hai=sutekoho_hai[fixed_sutekoho_num];
 
-	// 赤牌設定
-	// TODO:赤牌の優先順位を実装する
+/*
 	if( ( ply_sute_hai ==  5 && aka_count[0] > 0) || 
 	    ( ply_sute_hai == 15 && aka_count[1] > 0) || 
 	    ( ply_sute_hai == 25 && aka_count[2] > 0) ){
+*/
+
+	// 赤牌設定
+	if( ( ply_sute_hai ==  5 && tehai[ply_sute_hai] == aka_count[0]) || 
+	    ( ply_sute_hai == 15 && tehai[ply_sute_hai] == aka_count[1]) || 
+	    ( ply_sute_hai == 25 && tehai[ply_sute_hai] == aka_count[2]) ){
+		// 赤牌有効
 		ply_sute_aka=true;
 	}else{
+		// 赤牌無効化
 		ply_sute_aka=false;
 	}
 
@@ -1244,9 +1257,9 @@ void PlyActNakiSute(){
 
 
 	// 河情報設定
-	kawa[ply_num][ply_kawa_count[ply_num]]     = ply_sute_hai;
-	kawa_aka[ply_num][ply_kawa_count[ply_num]] = ply_sute_aka;
-	ply_kawa_count[ply_num]++;
+	kawa[ply_id][ply_kawa_count[ply_id]]     = ply_sute_hai;
+	kawa_aka[ply_id][ply_kawa_count[ply_id]] = ply_sute_aka;
+	ply_kawa_count[ply_id]++;
 
 	// 捨牌後の手牌状態確認
 	ChkTsumoNashiShanten();
@@ -1945,7 +1958,10 @@ void print_mes(char* tmp_mes){
 void print_separator(){
 
 	// 区切り線
-	printf("================\n");
+	// printf("================\n");
+
+	// 区切り線
+	fprintf(stderr,"================\n");
 
 }
 
@@ -1974,12 +1990,12 @@ void print_taku_start(){
 	print_separator();
 
 	// ply_id(起家)情報
-	printf("ply_id = %d\n", ply_num);
-	printf("ply_id_shimo = %d\n", ply_num_shimo);
+	fprintf(stderr,"ply_id = %d\n", ply_id);
+	fprintf(stderr,"ply_id_shimo = %d\n", ply_id_shimo);
 
 	// 赤牌情報
 	for(int tmp_i = 0; tmp_i < 3; tmp_i++){
-		printf("max_aka_count[%d] = %d\n", tmp_i, max_aka_count[tmp_i]);
+		fprintf(stderr,"max_aka_count[%d] = %d\n", tmp_i, max_aka_count[tmp_i]);
 	}
 
 }
@@ -1993,15 +2009,15 @@ void print_kyoku_start(){
 	print_separator();
 
 	// 局情報
-	printf("kyoku = %d\n", kyoku);
-	printf("ie = %d\n", ie);
-	printf("ply_bakaze  = %d\n", ply_bakaze);
-	printf("ply_zikaze  = %d\n", ply_zikaze);
-	printf("dora_hai[0] = %d\n", dora_hai[0]);
+	fprintf(stderr,"kyoku = %d\n", kyoku);
+	fprintf(stderr,"ie = %d\n", ie);
+	fprintf(stderr,"ply_bakaze  = %d\n", ply_bakaze);
+	fprintf(stderr,"ply_zikaze  = %d\n", ply_zikaze);
+	fprintf(stderr,"dora_hai[0] = %d\n", dora_hai[0]);
 	if(dora_aka[0] == true){
-		printf("dora_aka[0] = true\n");
+		fprintf(stderr,"dora_aka[0] = true\n");
 	}else{
-		printf("dora_aka[0] = false\n");
+		fprintf(stderr,"dora_aka[0] = false\n");
 	}
 
 }
@@ -2011,12 +2027,12 @@ void print_kyoku_start(){
 /* ---------------------------------------------------------------------------------------------- */
 void print_haipai(int tmp_tsumo_hai, bool tmp_tsumo_aka){
 
-	printf("---\n");
-	printf("tmp_tsumo_hai = %d\n", tmp_tsumo_hai);
+	fprintf(stderr,"---\n");
+	fprintf(stderr,"tmp_tsumo_hai = %d\n", tmp_tsumo_hai);
 	if(tmp_tsumo_aka == true){
-		printf("tmp_tsumo_aka = true\n");
+		fprintf(stderr,"tmp_tsumo_aka = true\n");
 	}else{
-		printf("tmp_tsumo_aka = false\n");
+		fprintf(stderr,"tmp_tsumo_aka = false\n");
 	}
 
 }
@@ -2033,22 +2049,22 @@ void print_tehai_line(){
 	print_separator();
 	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
 		for(int tmp_j=0; tmp_j < tehai[tmp_i]; tmp_j++){
-			printf("%2d ", tmp_i);
+			fprintf(stderr,"%2d ", tmp_i);
 			tmp_count++;
 		}
 	}
 
 	// 改行
-	printf("\n");
+	fprintf(stderr,"\n");
 
 	// 枚数
-	printf("手牌：%d枚\n", tmp_count);
+	fprintf(stderr,"手牌：%d枚\n", tmp_count);
 
 	// 鳴き情報
 	for(int tmp_i=0; tmp_i < naki_count; tmp_i++){
-		printf("%d:", tmp_i);
+		fprintf(stderr,"%d:", tmp_i);
 		print_mentsu(naki_stat[tmp_i], naki_hai[tmp_i], naki_idx[tmp_i], naki_aka[tmp_i]);
-		printf("\n");
+		fprintf(stderr,"\n");
 	}
 
 }
@@ -2063,9 +2079,9 @@ void print_tehai_hist(){
 
 	// ヒストグラム表示
 	for(int tmp_i=0; tmp_i < PAI_MAX; tmp_i++){
-		printf("%d ", tehai[tmp_i]);
+		fprintf(stderr,"%d ", tehai[tmp_i]);
 		if(tmp_i==0 || tmp_i==10 || tmp_i==20 || tmp_i==30 || tmp_i==37){
-			printf("\n");
+			fprintf(stderr,"\n");
 		}
 	}
 
@@ -2079,7 +2095,7 @@ void print_tehai_aka(){
 	// 区切り線
 	print_separator();
 	for(int tmp_i=0; tmp_i < 3; tmp_i++){
-		printf("aka_count[%d] = %d\n", tmp_i, aka_count[tmp_i]);
+		fprintf(stderr,"aka_count[%d] = %d\n", tmp_i, aka_count[tmp_i]);
 	}
 
 }
@@ -2091,13 +2107,13 @@ void print_tsumo_hai(){
 
 	// 区切り線
 	print_separator();
-	printf("自摸牌:%2d\n", ply_tsumo_hai);
+	fprintf(stderr,"自摸牌:%2d\n", ply_tsumo_hai);
 
 	// 自摸赤
 	if(ply_tsumo_aka == true){
-		printf("ply_tsumo_aka = true\n");
+		fprintf(stderr,"ply_tsumo_aka = true\n");
 	}else{
-		printf("ply_tsumo_aka = false\n");
+		fprintf(stderr,"ply_tsumo_aka = false\n");
 	}
 
 }
@@ -2114,23 +2130,23 @@ void print_kawa_line(){
 
 		// リーチ情報
 		if( ply_riichi_stat[tmp_ply] == true){
-			printf("id:%d リーチ:true 河:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
+			fprintf(stderr,"id:%d リーチ:true 河:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
 		}else{
-			printf("id:%d リーチ:false河:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
+			fprintf(stderr,"id:%d リーチ:false河:%2d枚 ", tmp_ply, ply_kawa_count[tmp_ply]);
 		}
 
 		// 河情報
 		for(int tmp_i=0; tmp_i < ply_kawa_count[tmp_ply]; tmp_i++){
 
 			if(kawa_aka[tmp_ply][tmp_i] == true){
-				printf("[%2d] ", kawa[tmp_ply][tmp_i]);
+				fprintf(stderr,"[%2d] ", kawa[tmp_ply][tmp_i]);
 			}else{
-				printf("%2d ", kawa[tmp_ply][tmp_i]);
+				fprintf(stderr,"%2d ", kawa[tmp_ply][tmp_i]);
 			}
 		}
 
 		// 改行
-		printf("\n");
+		fprintf(stderr,"\n");
 
 	}
 
@@ -2148,18 +2164,18 @@ void print_ori_info(){
 	if (ply_tehai_ori_stat == true){
 
 		// オリ有効
-		printf("オリステータス：オリ有効\n");
+		fprintf(stderr,"オリステータス：オリ有効\n");
 
 		// オリ牌表示
 		if (ply_ori_aka == true){
-			printf("オリ牌番号：%2d赤牌\n", ply_ori_hai);
+			fprintf(stderr,"オリ牌番号：%2d赤牌\n", ply_ori_hai);
 		}else{
-			printf("オリ牌番号：%2d黒牌\n", ply_ori_hai);
+			fprintf(stderr,"オリ牌番号：%2d黒牌\n", ply_ori_hai);
 		}
 
 	}else{
 		// オリ無効
-		printf("オリステータス：オリ無効\n");
+		fprintf(stderr,"オリステータス：オリ無効\n");
 	}
 
 }
@@ -2173,17 +2189,17 @@ void print_tsumoari_tehai_info(){
 	print_separator();
 
 	// 自摸有り表記
-	printf("手牌情報：自摸有り\n");
-	printf("自摸回数：%d\n", kyoku_tsumo_count);
+	fprintf(stderr,"手牌情報：自摸有り\n");
+	fprintf(stderr,"自摸回数：%d\n", kyoku_tsumo_count);
 
 	// 有効牌
-	printf("向聴数%d枚\n"  , shanten_normal);
-	printf("頭枚数%d枚\n"  , atama_count);
-	printf("メンツ数%d枚\n", mentu_count);
-	printf("ターツ数%d枚\n", taatu_count);
+	fprintf(stderr,"向聴数%d枚\n"  , shanten_normal);
+	fprintf(stderr,"頭枚数%d枚\n"  , atama_count);
+	fprintf(stderr,"メンツ数%d枚\n", mentu_count);
+	fprintf(stderr,"ターツ数%d枚\n", taatu_count);
 
 	// 捨牌候補数
-	printf("捨牌候補%d種\n", sutekoho_count);
+	fprintf(stderr,"捨牌候補%d種\n", sutekoho_count);
 
 	// 一覧表示
 	for(int tmp_i = 0; tmp_i < sutekoho_count; tmp_i++){
@@ -2191,8 +2207,8 @@ void print_tsumoari_tehai_info(){
 	}
 
 	// 最終捨牌候補
-	printf("---\n");
-	printf("最終捨牌候補：No.%d：牌%2d\n", fixed_sutekoho_num+1, sutekoho_hai[fixed_sutekoho_num]);
+	fprintf(stderr,"---\n");
+	fprintf(stderr,"最終捨牌候補：No.%d：牌%2d\n", fixed_sutekoho_num+1, sutekoho_hai[fixed_sutekoho_num]);
 
 }
 
@@ -2203,87 +2219,87 @@ void print_tsumonashi_tehai_info(){
 
 	// 自摸あり表記
 	print_separator();
-	printf("手牌情報：自摸無し\n");
+	fprintf(stderr,"手牌情報：自摸無し\n");
 
 	// 有効牌
-	printf("向聴数%d枚\n"  , shanten_normal);
-	printf("頭枚数%d枚\n"  , atama_count);
-	printf("メンツ数%d枚\n", mentu_count);
-	printf("ターツ数%d枚\n", taatu_count);
+	fprintf(stderr,"向聴数%d枚\n"  , shanten_normal);
+	fprintf(stderr,"頭枚数%d枚\n"  , atama_count);
+	fprintf(stderr,"メンツ数%d枚\n", mentu_count);
+	fprintf(stderr,"ターツ数%d枚\n", taatu_count);
 
 	// 萬子
-	printf("m ");
+	fprintf(stderr,"m ");
 	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
 		if(yuko_hai_13mai[tmp_j+1] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 
 	// 筒子
-	printf("p ");
+	fprintf(stderr,"p ");
 	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
 		if(yuko_hai_13mai[tmp_j+11] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 
 	// 索子
-	printf("s ");
+	fprintf(stderr,"s ");
 	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
 		if(yuko_hai_13mai[tmp_j+21] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 
 	// 字牌
-	printf("z ");
+	fprintf(stderr,"z ");
 	for(int tmp_j = 0; tmp_j < 7; tmp_j++){
 		if(yuko_hai_13mai[tmp_j+31] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 
 	// 鳴き情報
-	printf("鳴き候補枚数%d枚\n", nakikoho_tbl_count);
+	fprintf(stderr,"鳴き候補枚数%d枚\n", nakikoho_tbl_count);
 
 	// 鳴きテーブル情報
 	for(int tmp_i = 0; tmp_i < nakikoho_tbl_count; tmp_i++){
 
 		// 1段目・牌番号
-		printf("%d:牌%d,IDX%d\n", tmp_i+1, nakikoho_tbl_hai[tmp_i], nakikoho_tbl_idx[tmp_i]);
+		fprintf(stderr,"%d:牌%d,IDX%d\n", tmp_i+1, nakikoho_tbl_hai[tmp_i], nakikoho_tbl_idx[tmp_i]);
 
 		// 2段目・アクション
 		if( nakikoho_tbl_act[tmp_i] == ACTRON){
-			printf("Act:ロン");
+			fprintf(stderr,"Act:ロン");
 		}else if( nakikoho_tbl_act[tmp_i] == ACTPON){
-			printf("Act:ポン");
+			fprintf(stderr,"Act:ポン");
 		}else if( nakikoho_tbl_act[tmp_i] == ACTCHI){
-			printf("Act:チー");
+			fprintf(stderr,"Act:チー");
 		}else{
-			printf("Act:不明");
+			fprintf(stderr,"Act:不明");
 		}
 
 		// 3段目・鳴きの有無
 		if( nakikoho_tbl_yesno[tmp_i] == true){
-			printf("鳴有");
+			fprintf(stderr,"鳴有");
 		}else{
-			printf("鳴無");
+			fprintf(stderr,"鳴無");
 		}
 
 		// 改行
-		printf("\n");
+		fprintf(stderr,"\n");
 
 	}
 
@@ -2298,57 +2314,57 @@ void print_tsumonashi_tehai_info(){
 void print_sutekoho(int sutenum){
 
 	// パーツ表示(候補牌)
-	printf("捨牌候補%2d：牌%2d　：", sutenum+1, sutekoho_hai[sutenum]);
+	fprintf(stderr,"捨牌候補%2d：牌%2d　：", sutenum+1, sutekoho_hai[sutenum]);
 
 	// 候補数表示
-	printf("%d向%2d種%2d枚ポインタ%d　：", 
+	fprintf(stderr,"%d向%2d種%2d枚ポインタ%d　：", 
 		sutekoho_shanten[sutenum], 
 		yuko_haishu_count[sutenum],
 		yuko_hai_count[sutenum],
 		sutekoho_priority[sutenum]);
 
 	// 候補牌 - 萬子
-	printf("m ");
+	fprintf(stderr,"m ");
 	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
 		if(yuko_hai[sutenum][tmp_j+1] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
 
 	// 候補牌 - 筒子
-	printf("p ");
+	fprintf(stderr,"p ");
 	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
 		if(yuko_hai[sutenum][tmp_j+11] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
 
 	// 候補牌 - 索子
-	printf("s ");
+	fprintf(stderr,"s ");
 	for(int tmp_j = 0; tmp_j < 9; tmp_j++){
 		if(yuko_hai[sutenum][tmp_j+21] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
 
 	// 候補牌 - 字牌
-	printf("z");
+	fprintf(stderr,"z");
 	for(int tmp_j = 0; tmp_j < 7; tmp_j++){
 		if(yuko_hai[sutenum][tmp_j+31] == true){
-			printf("%d",tmp_j+1);
+			fprintf(stderr,"%d",tmp_j+1);
 		}else{
-			printf(" ");
+			fprintf(stderr," ");
 		}
 	}
 
 	// 改行
-	printf("\n");
+	fprintf(stderr,"\n");
 
 }
 
@@ -2376,35 +2392,35 @@ void print_pinfo_act(struct MJSPlyInfo *pinfo){
 	// アクション表示
 	print_separator();
 	if(pinfo->ply_act == ACTTSUMOAGARI){
-		printf("アクション：自摸和了\n");
+		fprintf(stderr,"アクション：自摸和了\n");
 	}else if(pinfo->ply_act == ACTSUTE){
-		printf("アクション：捨牌　　\n");
+		fprintf(stderr,"アクション：捨牌　　\n");
 	}else if(pinfo->ply_act == ACTTSUMOGIRI){
-		printf("アクション：自摸切り\n");
+		fprintf(stderr,"アクション：自摸切り\n");
 	}else if(pinfo->ply_act == ACTNAKISUTE){
-		printf("アクション：鳴き捨牌\n");
+		fprintf(stderr,"アクション：鳴き捨牌\n");
 	}else if(pinfo->ply_act == ACTRIICH){
-		printf("アクション：リーチ　\n");
+		fprintf(stderr,"アクション：リーチ　\n");
 	}else if(pinfo->ply_act == ACTANKAN){
-		printf("アクション：暗槓　　\n");
+		fprintf(stderr,"アクション：暗槓　　\n");
 	}else if(pinfo->ply_act == ACTKAKAN){
-		printf("アクション：加槓　　\n");
+		fprintf(stderr,"アクション：加槓　　\n");
 	}else if(pinfo->ply_act == ACTNONAKI){
-		printf("アクション：鳴き無し\n");
+		fprintf(stderr,"アクション：鳴き無し\n");
 	}else if(pinfo->ply_act == ACTRON){
-		printf("アクション：ロン和了\n");
+		fprintf(stderr,"アクション：ロン和了\n");
 	}else if(pinfo->ply_act == ACTPON){
-		printf("アクション：ポン\n");
+		fprintf(stderr,"アクション：ポン\n");
 	}else if(pinfo->ply_act == ACTCHI){
-		printf("アクション：チー\n");
+		fprintf(stderr,"アクション：チー\n");
 	}else{
-		printf("アクション：不明　　\n");
+		fprintf(stderr,"アクション：不明　　\n");
 	}
 
 	// 牌情報
-	printf("pinfo->act_hai = %d\n", pinfo->act_hai);
-	printf("pinfo->act_idx = %d\n", pinfo->act_idx);
-	printf("pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
+	fprintf(stderr,"pinfo->act_hai = %d\n", pinfo->act_hai);
+	fprintf(stderr,"pinfo->act_idx = %d\n", pinfo->act_idx);
+	fprintf(stderr,"pinfo->act_aka_count = %d\n", pinfo->act_aka_count);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -2413,21 +2429,21 @@ void print_pinfo_act(struct MJSPlyInfo *pinfo){
 void print_mentsu(LBMen men_stat, int men_hai, int men_idx, int aka_count){
 
 	if(men_stat == MINSHUN){
-		printf("明順");
+		fprintf(stderr,"明順");
 	}else if(men_stat == MINKO){
-		printf("明刻");
+		fprintf(stderr,"明刻");
 	}else if(men_stat == ANKAN){
-		printf("暗槓");
+		fprintf(stderr,"暗槓");
 	}else if(men_stat == MINKAN){
-		printf("明槓");
+		fprintf(stderr,"明槓");
 	}else if(men_stat == KAKAN){
-		printf("加槓");
+		fprintf(stderr,"加槓");
 	}else{
-		printf("不明");
+		fprintf(stderr,"不明");
 	}
 
 	// 牌番号
-	printf(" men_hai=%2d men_idx=%2d aka_count=%d", men_hai, men_idx, aka_count);
+	fprintf(stderr,", men_hai=%2d, men_idx=%2d, aka_count=%d", men_hai, men_idx, aka_count);
 
 }
 

@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.19(局情報、ドラ情報)
+ * バージョン     ： 0.0.1.0.23(mjai.app実装版)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/15 16:18:29
+ * 最終更新日     ： 2024/07/21 12:34:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -67,8 +67,8 @@ typedef enum {
 	static LBPlyChar ply_type;
 
 	// プレーヤ席番号
-	static int ply_num;                             // 自分のプレーヤ番号
-	static int ply_num_shimo;                       // 下家のプレーヤ番号
+	static int ply_id;                             // 自分のプレーヤ番号
+	static int ply_id_shimo;                       // 下家のプレーヤ番号
 
 	// プレーヤの家
 	static int kyoku;                               // 局
@@ -277,18 +277,24 @@ typedef enum {
 	               int tmp_act_aka_count);  // pinfo定義
 
 	// 1-1.卓開始・終了
-	void PlyActTakuStart(int tmp_ply_num,         // ply_idの決定
+	void PlyActTakuStart(int tmp_ply_id,         // ply_idの決定
 	                     int tmp_init_score,      // 卓開始時点での持ち得点
 	                     int tmp_aka_man_max,     // 萬子の赤牌枚数
 	                     int tmp_aka_pin_max,     // 筒子の赤牌枚数
 	                     int tmp_aka_sou_max);    // 索子の赤牌枚数
 
-
-	void PlyActTakuEnd();
+	void PlyActTakuEnd();                         // 卓終了処理
 
 	// 1-2.局開始・終了
-	void PlyActKyokuStart(int tmp_kyoku, int tmp_kaze, int tmp_ie, int tmp_dora, int tmp_dora_aka);
-	void PlyActKyokuEnd();
+	void PlyActKyokuStart(int tmp_kaze,           // 局番号
+	                      int tmp_kyoku,          // 場風の牌番号
+	                      int tmp_honba,          // 本場
+	                      int tmp_riichibo,       // リーチ棒の本数
+	                      int tmp_ie,             // プレーヤの家番号
+	                      int tmp_dora,           // ドラ牌
+	                      int tmp_dora_aka);      // ドラ赤
+
+	void PlyActKyokuEnd();                        // 局終了処理
 
 	// 2-1.配牌処理
 	void PlyActHaipai(int tmp_tsumo_hai, bool tmp_tsumo_aka);
@@ -319,7 +325,7 @@ typedef enum {
 	void PlyChkYaku();                                                // 3.役有り確認
 	void PlyChkFuriten();                                             // 4.フリテン確認
 	void PlyChkNakitbl();                                             // 5.鳴きテーブルの状態確認
-	void PlySetKawa(int tmp_ply_num, int tmp_hai, int tmp_aka);       // (汎用処理)河情報の設定
+	void PlySetKawa(int tmp_ply_id, int tmp_hai, int tmp_aka);        // (汎用処理)河情報の設定
 
 	// 3-4.捨牌時アクション処理(自摸捨てアクション以外)
 	void PlyActAnkan(int tmp_naki_hai);                               // 暗槓アクション
@@ -327,12 +333,12 @@ typedef enum {
 
 	// 4-1.他プレーヤ処理
 	void PlyChkOthPlyTsumo();                                                       // 他プレーヤの自摸
-	void PlyChkOthPlyRiichi(int tmp_ply_num);                                       // 他プレーヤのリーチ宣言
+	void PlyChkOthPlyRiichi(int tmp_ply_id);                                       // 他プレーヤのリーチ宣言
 	void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka);  // 鳴き確認
 
 	// 4-2.鳴きアクション処理
 	void PlyActNaki(struct MJSPlyInfo *pinfo,                         // 捨て牌アクション定義
-	                int naki_ply_num,                                 // 鳴きプレーヤ
+	                int naki_ply_id,                                  // 鳴きプレーヤ
 	                LBPAct naki_ply_act,                              // 鳴きアクション種別
 	                int hai,                                          // 鳴き牌
 	                int chi_hai_idx,                                  // 鳴き面子(チー面子)の頭牌
@@ -375,7 +381,7 @@ typedef enum {
 	void ChitoiShanten();               // 向聴数確認(七対子)
 
 	/* ----------------------------- */
-	// 表示処理
+	// 表示関数
 	/* ----------------------------- */
 
 	// 汎用関数(卓情報)

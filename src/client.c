@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.19(局情報、ドラ情報)
+ * バージョン     ： 0.0.1.0.23(mjai.app実装版)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/15 16:18:29
+ * 最終更新日     ： 2024/07/21 12:34:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -34,7 +34,14 @@ void set_ply_id(int tmp_ply_id){
 void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 
 	// ----------------------------------------
-	// 初期化処理
+	// 内部変数初期化
+	// ----------------------------------------
+
+	// 結果表示モードの設定
+	print_cli_mes_mode = 1;
+
+	// ----------------------------------------
+	// 変数初期化
 	// ----------------------------------------
 
 	// 構造体定義
@@ -50,11 +57,26 @@ void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 	// メイン処理
 	// ----------------------------------------
 
+	// (デバグ用)受信メッセージ表示
+	if( print_cli_mes_mode > 0){
+		print_cli_res_mes(tmp_res_mes);
+	}
+
 	// 解析
 	read_logline(&tmp_cli, tmp_res_mes);
 
+	// (デバグ用)cli構造体表示
+	if( print_cli_mes_mode > 10){
+		print_cli_wk_param(&tmp_cli);
+	}
+
 	// Mjaiのtypeごとの処理確認
 	chk_mjai_type_main(&tmp_cli, &tmp_pinfo, tmp_snd_mes);
+
+	// (デバグ用)送信メッセージ表示
+	if( print_cli_mes_mode > 0){
+		print_cli_snd_mes(tmp_snd_mes);
+	}
 
 }
 
@@ -333,7 +355,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 	// ----------------------------------------
 	// 受信メッセージの解析
 	// ----------------------------------------
-	for( int tmp_i = 0; tmp_i < cli->wk_str_count; tmp_i++ ) {
+	for( int tmp_wk_count = 0; tmp_wk_count < cli->wk_str_count; tmp_wk_count++ ) {
 
 		// ----------------------------------------
 		// possible_actionsモード
@@ -350,14 +372,14 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			// -----------------------
 			// 改行
 			// -----------------------
-			if(strcmp(cli->wk_str[tmp_i], "+" ) == 0 ){
+			if(strcmp(cli->wk_str[tmp_wk_count], "+" ) == 0 ){
 
 				// 改行の場合は何もしない
 
 			// -----------------------
 			// possible_actionsの有効化
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "possible_actions" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "possible_actions" ) == 0 ){
 
 				// 初期化
 				possible_mode = true;
@@ -365,8 +387,8 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			// -----------------------
 			// HELLOメッセージ
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type" ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "hello" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type" ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "hello" ) == 0 ){
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -377,11 +399,11 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			// -----------------------
 			// 卓開始
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type" ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "start_game" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type" ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "start_game" ) == 0 ){
 
 				// アクション設定
-				set_type_startgame(cli, tmp_i);
+				set_type_startgame(cli, tmp_wk_count);
 
 				// 卓開始処理
 				PlyActTakuStart(cli_ply_id, 25000, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
@@ -395,81 +417,81 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			// -----------------------
 			// 局開始
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type" ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "start_kyoku" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type" ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "start_kyoku" ) == 0 ){
 
 				// アクション設定
-				set_type_startkyoku(cli, tmp_i);
+				set_type_startkyoku(cli, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 自摸アクション
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "tsumo" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "tsumo" ) == 0 ){
 
 				// アクション設定
-				set_type_tsumo(cli, pinfo, tmp_snd_mes, tmp_i);
+				set_type_tsumo(cli, pinfo, tmp_snd_mes, tmp_wk_count);
 
 				// possible_actionsの値を確認するためにbreakで抜けない
 				// → メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// リーチアクション
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "reach" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "reach" ) == 0 ){
 
 				// アクション設定：リーチ後の捨牌処理
-				set_type_riichi(cli, pinfo, tmp_snd_mes, tmp_i);
+				set_type_riichi(cli, pinfo, tmp_snd_mes, tmp_wk_count);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 暗槓アクション
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "ankan" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "ankan" ) == 0 ){
 
-				// アクション設定：リーチ後の捨牌処理
-				// Set_type_ankan(tk,gui, tmp_i);
+				// アクション設定：暗槓アクション
+				// Set_type_ankan(tk,gui, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 加槓アクション
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "kakan" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "kakan" ) == 0 ){
 
-				// アクション設定：リーチ後の捨牌処理
-				// Set_type_kakan(tk,gui, tmp_i);
+				// アクション設定：加槓アクション
+				// Set_type_kakan(tk,gui, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
-			// 捨牌処理
+			// 捨牌アクション
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "dahai" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "dahai" ) == 0 ){
 
-				// アクション設定
-				set_type_dahai(cli, pinfo, tmp_snd_mes, tmp_i);
+				// アクション設定：捨牌(打牌)アクション
+				set_type_dahai(cli, pinfo, tmp_snd_mes, tmp_wk_count);
 
 				// possible_actionsの値を確認するためにbreakで抜けない
 				// break;
@@ -477,74 +499,74 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			// -----------------------
 			// ポン処理
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "pon" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "pon" ) == 0 ){
 
 				// アクション設定
-				set_type_pon(cli, pinfo, tmp_snd_mes, tmp_i);
+				set_type_pon(cli, pinfo, tmp_snd_mes, tmp_wk_count);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// チー処理
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "chi" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "chi" ) == 0 ){
 
 				// アクション設定
-				set_type_chi(cli, pinfo, tmp_snd_mes, tmp_i);
+				set_type_chi(cli, pinfo, tmp_snd_mes, tmp_wk_count);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 明槓アクション
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "daiminkan" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "daiminkan" ) == 0 ){
 
 				// アクション設定
-				// Set_type_minkan(tk,gui, tmp_i);
+				// Set_type_minkan(tk,gui, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// リーチ宣言受け入れ
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "reach_accepted" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "reach_accepted" ) == 0 ){
 
-				// アクション設定
-				// Set_type_reach_accepted(tk,gui, tmp_i);
+				// アクション設定：リーチ宣言受け入れ
+				// Set_type_reach_accepted(tk,gui, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 槓ドラ(追加ドラ)の表示
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "dora" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "dora" ) == 0 ){
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 和了確認
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "hora" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "hora" ) == 0 ){
 
 				// アクション設定
 				// Set_type_hora(tk,gui, tmp_i);
@@ -553,13 +575,13 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 流局
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "ryukyoku" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "ryukyoku" ) == 0 ){
 
 				// アクション設定
 				// Set_type_ryukyoku(tk,gui, tmp_i);
@@ -568,13 +590,13 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 終局
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "end_kyoku" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "end_kyoku" ) == 0 ){
 
 				// アクション設定
 				// Set_type_endkyoku(tk, gui, tmp_i);
@@ -583,13 +605,13 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// 卓終了
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "end_game" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "end_game" ) == 0 ){
 
 				// アクション設定
 				// Set_type_endgame(tk, gui, tmp_i);
@@ -598,13 +620,13 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// エラー処理
 			// -----------------------
-			}else if(strcmp(cli->wk_str[tmp_i], "type"  ) == 0 && 
-			         strcmp(cli->wk_str[tmp_i+1], "error" ) == 0 ){
+			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
+			         strcmp(cli->wk_str[tmp_wk_count+1], "error" ) == 0 ){
 
 				// エラー処理
 				// tk->stat = TAKUERR;
@@ -613,7 +635,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_snd_none_mes(tmp_snd_mes);
 
 				// メッセージ確定のために処理抜け
-				break;
+				// break;
 
 			// -----------------------
 			// その他のアクション
@@ -658,73 +680,108 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// ----------------------------------------
 
 	// 初期化
-	int  tmp_ply_oya;
-	int  tmp_ply_ie;
-	int  tmp_kyoku;
-	int  tmp_kaze;
+	int  tmp_ply_oya = 0;          // 親のプレーヤーID
+	int  tmp_ply_ie = 0;           // プレーヤの家ID
+	int  tmp_kaze = 0;             // 場風の牌番号
+	int  tmp_kyoku = 0;            // 局番号
+	int  tmp_honba = 0;            // 本場
+	int  tmp_riichbo = 0;
 	int  tmp_dora_hai = 0;
 	bool tmp_dora_aka = false;
 
 	// 配牌
-	int  haipai_point=0;
-	int  now_tsumo_hai;
+	int  haipai_point = 0;
+	int  now_tsumo_hai = 0;
 	bool now_tsumo_aka = false;
 
 	// ----------------------------------------
-	// 局の算出
+	// 局情報の算出
 	// ----------------------------------------
+	for( int tmp_subwk_count = tmp_wk_num; tmp_subwk_count < cli->wk_str_count; tmp_subwk_count++ ) {
 
-	// 風
-	tmp_kaze = get_hainum(cli->wk_str[tmp_wk_num+3] );
+		// 次のtype
+		if(strcmp(cli->wk_str[tmp_subwk_count], "type" ) == 0 ){
 
-	// 局
-	tmp_kyoku = get_hainum(cli->wk_str[tmp_wk_num+3] ) - 31 +         // E(東場)かS(南場)の文字列確認
-	            atoi(cli->wk_str[tmp_wk_num+5]) - 1;                  // 局情報取得
+			// start_kyokuでないなら
+			if(strcmp(cli->wk_str[tmp_subwk_count+1], "start_kyoku" ) != 0 ){
+				// 後続処理は実行しないので、処理抜け
+				break;
+			}
 
-	// ----------------------------------------
-	// 局情報定義
-	// ----------------------------------------
+		// 配牌
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "tehais" ) == 0 ){
 
-	// 本場
-	// tk->kyoku[tk->kyoku_index].tsumibo = atoi(cli->wk_str[tmp_wk_num+7]);
+			// 配牌ポインター設定
+			haipai_point = tmp_subwk_count + 1 + TEHAI_MAX * cli_ply_id;
 
-	// リーチ棒
-	// tk->kyoku[tk->kyoku_index].riichbo = atoi(cli->wk_str[tmp_wk_num+9]);
+		// 場風
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "bakaze" ) == 0 ){
 
-	// ----------------------------------------
-	// ドラ定義
-	// ----------------------------------------
+			// 場風の牌番号
+			tmp_kaze = get_hainum(cli->wk_str[tmp_subwk_count+1] );
 
-	// ドラ表示牌
-	tmp_dora_hai = get_hainum(cli->wk_str[tmp_wk_num+13]);
+		// ドラ定義
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "dora_marker" ) == 0 ){
+
+			// ドラ表示牌
+			tmp_dora_hai = get_hainum(cli->wk_str[tmp_subwk_count+1]);
+
+			// 赤牌確認
+			if (tmp_dora_hai > 100){
+				tmp_dora_hai = tmp_dora_hai - 100;
+				tmp_dora_aka = true;
+			}else{
+				tmp_dora_aka = false;
+			}
+
+		// 局
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "kyoku" ) == 0 ){
+
+			// 局
+			tmp_kyoku = atoi(cli->wk_str[tmp_subwk_count+1]) - 1;
+
+		// 本場
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "honba" ) == 0 ){
+
+			// 本場
+			tmp_honba = atoi(cli->wk_str[tmp_subwk_count+1]);
+
+		// 供託(リーチ棒)
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "kyotaku" ) == 0 ){
+
+			// リーチ棒
+			tmp_riichbo = atoi(cli->wk_str[tmp_subwk_count+1]);
+
+		// 親の家番号
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "oya" ) == 0 ){
+
+			// 親の家番号
+			tmp_ply_oya = atoi(cli->wk_str[tmp_subwk_count+1]);
+
+			// プレーヤーの家番号算出
+			tmp_ply_ie = ( 4 + cli_ply_id - tmp_ply_oya) % 4;
+
+		// 局得点
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "scores" ) == 0 ){
 
 
-	// 赤牌確認
-	if (tmp_dora_hai > 100){
-		tmp_dora_hai = tmp_dora_hai - 100;
-		tmp_dora_aka = true;
-	}else{
-		tmp_dora_aka = false;
+		// それ以外
+		}else{
+
+			// 何もしない
+
+		}
+
 	}
-
-	// ----------------------------------------
-	// 手番設定(親の席番号指定)
-	// ----------------------------------------
-	tmp_ply_oya = atoi(cli->wk_str[tmp_wk_num+11]);
-
-	// 家算出
-	tmp_ply_ie = ( 4 + cli_ply_id - tmp_ply_oya) % 4;
 
 	// ----------------------------------------
 	// pinfo設定(局開始)
 	// ----------------------------------------
-	PlyActKyokuStart(tmp_kyoku, tmp_kaze, tmp_ply_ie, tmp_dora_hai, tmp_dora_aka);
+	PlyActKyokuStart(tmp_kaze, tmp_kyoku, tmp_honba, tmp_riichbo, tmp_ply_ie, tmp_dora_hai, tmp_dora_aka);
 
 	// ----------------------------------------
 	// 配牌設定
 	// ----------------------------------------
-	// 配牌ポインター設定
-	haipai_point=tmp_wk_num + 15 + TEHAI_MAX * cli_ply_id;
 
 	// 配牌設定
 	for(int tmp_i=0; tmp_i < TEHAI_MAX; tmp_i++){
@@ -1535,6 +1592,50 @@ void set_snd_none_mes(char *tmp_snd_mes){
 
 	// sendメッセージ設定
 	sprintf(tmp_snd_mes, "{\"type\":\"none\"}\n");
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：受信メッセージ表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_cli_res_mes(char* tmp_mes){
+
+	// 区切り線
+	fprintf(stderr,"================\n");
+
+	// デバグ用：受信メッセージ表示
+	fprintf(stderr,"RES->:\n");
+	fprintf(stderr,"%s\n", tmp_mes);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：送信メッセージ表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_cli_snd_mes(char* tmp_mes){
+
+	// 区切り線
+	fprintf(stderr,"================\n");
+
+	// デバグ用：送信メッセージ表示
+	fprintf(stderr,"<-SND:\n");
+	fprintf(stderr,"%s\n", tmp_mes);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 表示処理：cli構造体表示
+/* ---------------------------------------------------------------------------------------------- */
+void print_cli_wk_param(struct MJSClient *cli){
+
+	// 区切り線
+	fprintf(stderr,"================\n");
+
+	// デバグ用：wk関数設定値
+	fprintf(stderr,"[wk_param]\n");
+	for( int tmp_i = 0; tmp_i < cli->wk_str_count; tmp_i++ ) {
+		fprintf(stderr,"%3d:%s\n", tmp_i, cli->wk_str[tmp_i]);
+	}
 
 }
 
