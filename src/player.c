@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.21(start_kyoku値読み込み処理の見直し)
+ * バージョン     ： 0.0.1.0.24(赤捨牌処理の修正)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/20 17:00:20
+ * 最終更新日     ： 2024/07/22 16:04:50
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -462,7 +462,7 @@ void PlyChkTsumoSute(){
 		// アクション定義
 		ply_sute_hai = 0;
 		ply_sute_aka=false;
-		ply_riichi_mode = 1;   // リーチ宣言モード
+		ply_riichi_mode = 1;            // リーチ宣言モード
 
 	// ----------------------------------------
 	// 自摸切り確認(条件：「自摸牌と捨牌が同一」かつ「手牌内の捨牌が0枚」→自摸切り)
@@ -477,7 +477,7 @@ void PlyChkTsumoSute(){
 
 		// 前のアクションが「リーチアクション」ならば、リーチモードの変更
 		if( ply_riichi_mode == 1 ){
-			ply_riichi_mode = 2;   // リーチ宣言後モード
+			ply_riichi_mode = 2;        // リーチ宣言後モード
 		}
 
 	// ----------------------------------------
@@ -494,9 +494,10 @@ void PlyChkTsumoSute(){
 */
 
 		// 赤牌設定
-		if( ( ply_sute_hai ==  5 && tehai[ply_sute_hai] == aka_count[0]) || 
-		    ( ply_sute_hai == 15 && tehai[ply_sute_hai] == aka_count[1]) || 
-		    ( ply_sute_hai == 25 && tehai[ply_sute_hai] == aka_count[2]) ){
+		if( ( ply_sute_hai == MAN5NUM && aka_count[0] > 0 && tehai[ply_sute_hai] == aka_count[0]) || 
+		    ( ply_sute_hai == PIN5NUM && aka_count[1] > 0 && tehai[ply_sute_hai] == aka_count[1]) || 
+		    ( ply_sute_hai == SOU5NUM && aka_count[2] > 0 && tehai[ply_sute_hai] == aka_count[2]) ){ 
+
 			// 赤牌有効
 			ply_sute_aka=true;
 		}else{
@@ -1212,9 +1213,10 @@ void PlyChkNakiSute(struct MJSPlyInfo *pinfo){
 */
 
 	// 赤牌設定
-	if( ( ply_sute_hai ==  5 && tehai[ply_sute_hai] == aka_count[0]) || 
-	    ( ply_sute_hai == 15 && tehai[ply_sute_hai] == aka_count[1]) || 
-	    ( ply_sute_hai == 25 && tehai[ply_sute_hai] == aka_count[2]) ){
+	if( ( ply_sute_hai == MAN5NUM && aka_count[0] > 0 && tehai[ply_sute_hai] == aka_count[0]) || 
+	    ( ply_sute_hai == PIN5NUM && aka_count[1] > 0 && tehai[ply_sute_hai] == aka_count[1]) || 
+	    ( ply_sute_hai == SOU5NUM && aka_count[2] > 0 && tehai[ply_sute_hai] == aka_count[2]) ){ 
+
 		// 赤牌有効
 		ply_sute_aka=true;
 	}else{
