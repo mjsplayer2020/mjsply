@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.14(mjai呼び出し関数の引数変更)
+ * バージョン     ： 0.0.1.0.27(関数名変更：init, react)
  * プログラム名   ： mjs
  * ファイル名     ： mjsso.c
  * クラス名       ： MJSMjaiClient
  * 処理概要       ： Mjaiクライアント処理クラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/06 22:47:29
+ * 最終更新日     ： 2024/07/27 09:11:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -19,7 +19,7 @@
 /* ---------------------------------------------------------------------------------------------- */
 // 初期化処理
 /* ---------------------------------------------------------------------------------------------- */
-static PyObject* init_mjs_module(PyObject* self, PyObject* args){
+static PyObject* init(PyObject* self, PyObject* args){
 
 	// 変数定義
 	int ply_id;
@@ -43,7 +43,7 @@ static PyObject* init_mjs_module(PyObject* self, PyObject* args){
 /* ---------------------------------------------------------------------------------------------- */
 // メッセージ定義処理
 /* ---------------------------------------------------------------------------------------------- */
-static PyObject* get_message(PyObject* self, PyObject* args){
+static PyObject* react(PyObject* self, PyObject* args){
 
 	// 変数定義
     char*  res_mes;            // 受信メッセージ用文字列
@@ -66,8 +66,8 @@ static PyObject* get_message(PyObject* self, PyObject* args){
 // Function Definition struct
 /* ---------------------------------------------------------------------------------------------- */
 static PyMethodDef myMethods[] = {
-    { "init_mjs_module", init_mjs_module, METH_VARARGS, "Init Module" },
-    { "get_message", get_message, METH_VARARGS, "Get messages" },
+    { "init", init, METH_VARARGS, "Init Module" },
+    { "react", react, METH_VARARGS, "Get messages" },
     { NULL }
 };
 

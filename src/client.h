@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.23(mjai.app実装版)
+ * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
  * プログラム名   ： mjs
  * ファイル名     ： client.h
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/21 12:34:38
+ * 最終更新日     ： 2024/07/27 09:11:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -21,6 +21,14 @@
 #include "player.h"
 
 /* ---------------------------------------------------------------------------------------------- */
+// 固定値
+/* ---------------------------------------------------------------------------------------------- */
+
+// バッファサイズ
+#define WK_COL_MAX_SIZE       512
+#define WK_MES_MAX_SIZE        64
+
+/* ---------------------------------------------------------------------------------------------- */
 // 変数定義
 /* ---------------------------------------------------------------------------------------------- */
 
@@ -32,7 +40,7 @@
 	static bool cli_sute_aka;        // 捨牌赤
 
 	// 赤牌情報
-	static int cli_max_aka_count[AKA_SHUBETSU_MAX];         // 最大赤牌枚数
+	static int cli_max_aka_count[AKA_TYPE_MAX_COUNT];       // 最大赤牌枚数
 
 	// 表示モード
 	static int print_cli_mes_mode;                          // メッセージ表示レベル設定
@@ -41,8 +49,8 @@
 struct MJSClient{
 
 	// MJAIメッセージ解析用バッファ
-	int  wk_str_count;        // 作業用文字配列の総数
-	char wk_str[256][64];     // 作業用文字配列
+	int  wk_str_count;                                      // 作業用文字配列の総数
+	char wk_str[WK_COL_MAX_SIZE][WK_MES_MAX_SIZE];          // 作業用文字配列
 
 };
 
@@ -61,8 +69,8 @@ struct MJSClient{
 	// -----------------------------
 
 	// メイン関数
-	void set_ply_id(int tmp_ply_id);
-	void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes);
+	void set_ply_id(int tmp_ply_id);                                  // Mjaiクライアント・プレーヤ番号指定
+	void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes);    // Mjaiクライアント・送信メッセージ指定
 
 	// JSON解析
 	void read_logline(struct MJSClient *cli, char *line_buf);
@@ -77,13 +85,15 @@ struct MJSClient{
 
 	// typeごとの処理確認(サブ処理)
 	void set_type_hello(struct MJSClient *cli, int tmp_wk_num);                                                   // helloメッセージ確認
-	void set_type_startgame(struct MJSClient *cli, int tmp_wk_num);                                               // 卓ゲーム開始処理
+	void set_type_startgame(struct MJSClient *cli, int tmp_wk_num);                                               // 卓開始処理
 	void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num);                                              // 局開始処理
 	void set_type_tsumo(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 自摸時処理
 	void set_type_riichi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);     // リーチ時処理
 	void set_type_dahai(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);      // 捨牌時処理
 	void set_type_pon(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);        // ポン処理
 	void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);        // チー処理
+	void set_type_hora(struct MJSClient *cli, int tmp_wk_num);                                                    // 和了処理
+	void set_type_ryukyoku(struct MJSClient *cli, int tmp_wk_num);                                                // 流局処理
 
 	// 自摸後アクション(ply関数向け)
 	void set_post_tsumo_act(struct MJSPlyInfo *pinfo);
@@ -111,8 +121,11 @@ struct MJSClient{
 	// -----------------------------
 	// サブ関数
 	// -----------------------------
+
+	// 牌情報取得
 	int  get_hainum(char hai_str[]);                                  // 牌番号取得
 	void Get_haichr(int hai_num, bool hai_aka, char hai_str[]);       // Mjai向け牌文字取得
+	int  get_dora_hai(int dora_maker);                                // ドラ表示牌からドラ牌を取得する
 
 	/* ----------------------------- */
 	// 表示関数：クライアント関数

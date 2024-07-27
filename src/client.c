@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.23(mjai.app実装版)
+ * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/21 12:34:38
+ * 最終更新日     ： 2024/07/27 09:11:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -20,11 +20,22 @@
 /* ---------------------------------------------------------------------------------------------- */
 void set_ply_id(int tmp_ply_id){
 
+	// ----------------------------------------
+	// 変数初期化
+	// ----------------------------------------
+
 	// 卓開始処理(Ply_id設定)
 	cli_ply_id = tmp_ply_id;
 
+	// 変数定義
+	cli_max_aka_count[0] = 1;
+	cli_max_aka_count[1] = 1;
+	cli_max_aka_count[2] = 1;
+
+	// ----------------------------------------
 	// 卓開始処理
-	PlyActTakuStart(cli_ply_id, 25000, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
+	// ----------------------------------------
+	PlyActTakuStart(cli_ply_id, INITSCORE, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
 
 }
 
@@ -85,6 +96,9 @@ void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 /* ---------------------------------------------------------------------------------------------- */
 int get_hainum(char hai_str[]){
 
+	// ----------------------------------------
+	// 初期化
+	// ----------------------------------------
 	char tmp_str[8];
 	int  hainum;
 
@@ -228,6 +242,31 @@ void Get_haichr(int hai_num, bool hai_aka, char hai_str[]){
 }
 
 /* ---------------------------------------------------------------------------------------------- */
+// ドラ表示牌からドラ牌を取得する
+/* ---------------------------------------------------------------------------------------------- */
+int get_dora_hai(int dora_maker){
+
+	// ドラ表示牌→ドラ牌の変換
+	if(dora_maker == 9){
+		return 1;
+	}else if(dora_maker == 19){
+		return 11;
+	}else if(dora_maker == 29){
+		return 21;
+	}else if(dora_maker == 34){
+		return 31;
+	}else if(dora_maker == 37){
+		return 35;
+	// デバグ用
+	}else if(dora_maker < 1 || dora_maker > 37){
+		return 1;
+	}else{
+		return dora_maker+1;
+	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
 // MjaiJSONの読み込み
 /* ---------------------------------------------------------------------------------------------- */
 void read_logline(struct MJSClient *cli, char *line_buf){
@@ -253,33 +292,33 @@ void read_logline(struct MJSClient *cli, char *line_buf){
 
 	// バッファクリア
 	memset(tmp_wk_str, 0, sizeof(tmp_wk_str));
-	// sprintf(tmp_wk_str, "");
 
-	/* ---------------------------------------- */
+	// ----------------------------------------
 	// fgetで取得した文字列を行末まで確認する
-	/* ---------------------------------------- */
+	// ----------------------------------------
     while( line_buf[line_buf_point] != '\0' ){
 
-		/* ---------------------------------------- */
+		// ----------------------------------------
 		// 半角文字の格納
-		/* ---------------------------------------- */
+		// ----------------------------------------
 		tmp_buf[0] = line_buf[line_buf_point];
 		tmp_buf[1] = '\0';
 		line_buf_point++;
 
-		/* ---------------------------------------- */
+		// ----------------------------------------
 		// 文字抽出(空白)
-		/* ---------------------------------------- */
+		// ----------------------------------------
 		if ( strcmp(tmp_buf, ":" ) == 0 || strcmp(tmp_buf, "," ) == 0 ){
 
 				// 「空白区切り」で文字を追記
 				if(space_flg == 1){
+
+					// スペースフラグを無効化
 					space_flg = 0;
 
 					// wk構造体に一時データを格納、その後tmp_wk_strは初期化
 					set_wk_param(cli, tmp_wk_str);
 					memset(tmp_wk_str, 0, sizeof(tmp_wk_str));
-					// sprintf(tmp_wk_str, "");
 
 				}
 
@@ -303,7 +342,6 @@ void read_logline(struct MJSClient *cli, char *line_buf){
 
 					// wk構造体に一時データを格納、その後tmp_wk_strは初期化
 					set_wk_param(cli, tmp_wk_str);
-					// sprintf(tmp_wk_str, "");
 					memset(tmp_wk_str, 0, sizeof(tmp_wk_str));
 
 				}
@@ -313,17 +351,15 @@ void read_logline(struct MJSClient *cli, char *line_buf){
 				set_wk_param(cli, tmp_wk_str);
 
 				// 値の初期化
-				// sprintf(tmp_wk_str, "");
 				memset(tmp_wk_str, 0, sizeof(tmp_wk_str));
 
-		/* ---------------------------------------- */
+		// ----------------------------------------
 		// その他の文字抽出
-		/* ---------------------------------------- */
+		// ----------------------------------------
 		}else{
 
 				// 「空白」「改行」以外の半角文字処理
 				space_flg = 1;
-				// sprintf(tmp_wk_str, "%s%s", tmp_wk_str, tmp_buf);
 			 	strcat(tmp_wk_str, tmp_buf);	
 
 		}
@@ -406,7 +442,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				set_type_startgame(cli, tmp_wk_count);
 
 				// 卓開始処理
-				PlyActTakuStart(cli_ply_id, 25000, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
+				PlyActTakuStart(cli_ply_id, INITSCORE, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -569,7 +605,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			         strcmp(cli->wk_str[tmp_wk_count+1], "hora" ) == 0 ){
 
 				// アクション設定
-				// Set_type_hora(tk,gui, tmp_i);
+				set_type_hora(cli, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -584,7 +620,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			         strcmp(cli->wk_str[tmp_wk_count+1], "ryukyoku" ) == 0 ){
 
 				// アクション設定
-				// Set_type_ryukyoku(tk,gui, tmp_i);
+				set_type_ryukyoku(cli, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -628,8 +664,6 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			}else if(strcmp(cli->wk_str[tmp_wk_count], "type"  ) == 0 && 
 			         strcmp(cli->wk_str[tmp_wk_count+1], "error" ) == 0 ){
 
-				// エラー処理
-				// tk->stat = TAKUERR;
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -685,21 +719,32 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	int  tmp_kaze = 0;             // 場風の牌番号
 	int  tmp_kyoku = 0;            // 局番号
 	int  tmp_honba = 0;            // 本場
-	int  tmp_riichbo = 0;
-	int  tmp_dora_hai = 0;
-	bool tmp_dora_aka = false;
+	int  tmp_riichbo = 0;          // リーチ棒
+	int  tmp_dora_hai = 0;         // ドラ牌
+	// bool  tmp_dora_aka = false;         // ドラ牌赤
 
 	// 配牌
-	int  haipai_point = 0;
-	int  now_tsumo_hai = 0;
-	bool now_tsumo_aka = false;
+	int  haipai_point = 0;         // 配牌の開始位置のポインタ番号
+	int  now_tsumo_hai = 0;        // 配牌番号
+	bool now_tsumo_aka = false;    // 配牌赤
+
+	// 得点計算
+	bool tmp_score_flg = false;
+	int  tmp_score[4];
+
+	// 変数初期化
+	for(int tmp_ply = 0; tmp_ply < PLAYER_MAX; tmp_ply++){
+		tmp_score[tmp_ply] = 0;
+	}
 
 	// ----------------------------------------
 	// 局情報の算出
 	// ----------------------------------------
 	for( int tmp_subwk_count = tmp_wk_num; tmp_subwk_count < cli->wk_str_count; tmp_subwk_count++ ) {
 
+		// -----------------------
 		// 次のtype
+		// -----------------------
 		if(strcmp(cli->wk_str[tmp_subwk_count], "type" ) == 0 ){
 
 			// start_kyokuでないなら
@@ -708,19 +753,25 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 				break;
 			}
 
+		// -----------------------
 		// 配牌
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "tehais" ) == 0 ){
 
 			// 配牌ポインター設定
 			haipai_point = tmp_subwk_count + 1 + TEHAI_MAX * cli_ply_id;
 
+		// -----------------------
 		// 場風
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "bakaze" ) == 0 ){
 
 			// 場風の牌番号
 			tmp_kaze = get_hainum(cli->wk_str[tmp_subwk_count+1] );
 
+		// -----------------------
 		// ドラ定義
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "dora_marker" ) == 0 ){
 
 			// ドラ表示牌
@@ -729,30 +780,38 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 			// 赤牌確認
 			if (tmp_dora_hai > 100){
 				tmp_dora_hai = tmp_dora_hai - 100;
-				tmp_dora_aka = true;
+				// tmp_dora_aka = true;
 			}else{
-				tmp_dora_aka = false;
+				// tmp_dora_aka = false;
 			}
 
+		// -----------------------
 		// 局
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "kyoku" ) == 0 ){
 
 			// 局
-			tmp_kyoku = atoi(cli->wk_str[tmp_subwk_count+1]) - 1;
+			tmp_kyoku = atoi(cli->wk_str[tmp_subwk_count+1]);
 
+		// -----------------------
 		// 本場
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "honba" ) == 0 ){
 
 			// 本場
 			tmp_honba = atoi(cli->wk_str[tmp_subwk_count+1]);
 
+		// -----------------------
 		// 供託(リーチ棒)
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "kyotaku" ) == 0 ){
 
 			// リーチ棒
 			tmp_riichbo = atoi(cli->wk_str[tmp_subwk_count+1]);
 
+		// -----------------------
 		// 親の家番号
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "oya" ) == 0 ){
 
 			// 親の家番号
@@ -761,11 +820,22 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 			// プレーヤーの家番号算出
 			tmp_ply_ie = ( 4 + cli_ply_id - tmp_ply_oya) % 4;
 
+		// -----------------------
 		// 局得点
+		// -----------------------
 		}else if(strcmp(cli->wk_str[tmp_subwk_count], "scores" ) == 0 ){
 
+			// 得点変更有効化
+			tmp_score_flg = true;
 
+			// 得点取得
+			for(int tmp_ply = 0; tmp_ply < PLAYER_MAX; tmp_ply++){
+				tmp_score[tmp_ply] = atoi(cli->wk_str[tmp_subwk_count+1+tmp_ply]);
+			}
+
+		// -----------------------
 		// それ以外
+		// -----------------------
 		}else{
 
 			// 何もしない
@@ -777,7 +847,7 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// ----------------------------------------
 	// pinfo設定(局開始)
 	// ----------------------------------------
-	PlyActKyokuStart(tmp_kaze, tmp_kyoku, tmp_honba, tmp_riichbo, tmp_ply_ie, tmp_dora_hai, tmp_dora_aka);
+	PlyActKyokuStart(tmp_kaze, tmp_kyoku, tmp_honba, tmp_riichbo, tmp_ply_ie, tmp_score_flg, tmp_score, get_dora_hai(tmp_dora_hai));
 
 	// ----------------------------------------
 	// 配牌設定
@@ -1237,6 +1307,135 @@ void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd
 }
 
 /* ---------------------------------------------------------------------------------------------- */
+// typeごとでの値設定(hora)
+/* ---------------------------------------------------------------------------------------------- */
+void set_type_hora(struct MJSClient *cli, int tmp_wk_num){
+
+	// ----------------------------------------
+	// 変数定義
+	// ----------------------------------------
+
+	// 変数初期
+	bool tmp_score_flg = false;
+	int  tmp_score[4];
+
+	// 変数初期化
+	for(int tmp_ply = 0; tmp_ply < PLAYER_MAX; tmp_ply++){
+		tmp_score[tmp_ply] = 0;
+	}
+
+	// ----------------------------------------
+	// 和了情報の算出
+	// ----------------------------------------
+	for( int tmp_subwk_count = tmp_wk_num; tmp_subwk_count < cli->wk_str_count; tmp_subwk_count++ ) {
+
+		// -----------------------
+		// 次のtype
+		// -----------------------
+		if(strcmp(cli->wk_str[tmp_subwk_count], "type" ) == 0 ){
+
+			// start_kyokuでないなら
+			if(strcmp(cli->wk_str[tmp_subwk_count+1], "hora" ) != 0 ){
+				// 後続処理は実行しないので、処理抜け
+				break;
+			}
+
+		// -----------------------
+		// 次局の得点
+		// -----------------------
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "scores" ) == 0 ){
+
+			// 得点変更有効化
+			tmp_score_flg = true;
+
+			// 得点取得
+			for(int tmp_ply = 0; tmp_ply < PLAYER_MAX; tmp_ply++){
+				tmp_score[tmp_ply] = atoi(cli->wk_str[tmp_subwk_count+1+tmp_ply]);
+			}
+
+		// -----------------------
+		// それ以外
+		// -----------------------
+		}else{
+
+			// 何もしない
+
+		}
+
+	}
+
+	// ----------------------------------------
+	// 和了情報設定
+	// ----------------------------------------
+	PlyAgari(tmp_score_flg, tmp_score);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// typeごとでの値設定(ryukyoku)
+/* ---------------------------------------------------------------------------------------------- */
+void set_type_ryukyoku(struct MJSClient *cli, int tmp_wk_num){
+
+	// ----------------------------------------
+	// 変数定義
+	// ----------------------------------------
+	// 変数初期
+	bool tmp_score_flg = false;
+	int  tmp_score[4];
+
+	// 変数初期化
+	for(int tmp_ply = 0; tmp_ply < PLAYER_MAX; tmp_ply++){
+		tmp_score[tmp_ply] = 0;
+	}
+
+	// ----------------------------------------
+	// 流れ局情報の算出
+	// ----------------------------------------
+	for( int tmp_subwk_count = tmp_wk_num; tmp_subwk_count < cli->wk_str_count; tmp_subwk_count++ ) {
+
+		// -----------------------
+		// 次のtype
+		// -----------------------
+		if(strcmp(cli->wk_str[tmp_subwk_count], "type" ) == 0 ){
+
+			// start_kyokuでないなら
+			if(strcmp(cli->wk_str[tmp_subwk_count+1], "ryukyoku" ) != 0 ){
+				// 後続処理は実行しないので、処理抜け
+				break;
+			}
+
+		// -----------------------
+		// 次局の得点
+		// -----------------------
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "scores" ) == 0 ){
+
+			// 得点変更有効化
+			tmp_score_flg = true;
+
+			// 得点取得
+			for(int tmp_ply = 0; tmp_ply < PLAYER_MAX; tmp_ply++){
+				tmp_score[tmp_ply] = atoi(cli->wk_str[tmp_subwk_count+1+tmp_ply]);
+			}
+
+		// -----------------------
+		// それ以外
+		// -----------------------
+		}else{
+
+			// 何もしない
+
+		}
+
+	}
+
+	// ----------------------------------------
+	// 和了情報設定
+	// ----------------------------------------
+	PlyAgari(tmp_score_flg, tmp_score);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
 // メッセージ定義(メイン処理：自摸時)
 /* ---------------------------------------------------------------------------------------------- */
 void set_tsumo_act_mes(struct MJSPlyInfo *pinfo, char *tmp_snd_mes){
@@ -1533,7 +1732,7 @@ void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_
 	// Mes取得準備：文字取得(鳴き牌)
 	Get_haichr(nakl_hai, nakl_aka, tmp_hai_chr);
 
-	// メッセージ設定(ヘッダー)
+	// sendメッセージ設定(ヘッダー)
 	sprintf(tmp_snd_mes, "{\"type\":\"chi\",\"actor\":%d,\"target\":%d,\"pai\":\"%s\",\"consumed\":[", cli_ply_id, ply_target, tmp_hai_chr);
 
 	// チー牌設定
@@ -1558,7 +1757,7 @@ void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_
 		}
 	}
 
-	// メッセージ設定(フッター)
+	// sendメッセージ設定(フッター)
 	sprintf(tmp_snd_mes, "%s]}\n", tmp_snd_mes);
 
 }
@@ -1604,8 +1803,8 @@ void print_cli_res_mes(char* tmp_mes){
 	fprintf(stderr,"================\n");
 
 	// デバグ用：受信メッセージ表示
-	fprintf(stderr,"RES->:\n");
-	fprintf(stderr,"%s\n", tmp_mes);
+	fprintf(stderr,"RES->:");
+	fprintf(stderr,"%s", tmp_mes);
 
 }
 
@@ -1618,8 +1817,8 @@ void print_cli_snd_mes(char* tmp_mes){
 	fprintf(stderr,"================\n");
 
 	// デバグ用：送信メッセージ表示
-	fprintf(stderr,"<-SND:\n");
-	fprintf(stderr,"%s\n", tmp_mes);
+	fprintf(stderr,"<-SND:");
+	fprintf(stderr,"%s", tmp_mes);
 
 }
 

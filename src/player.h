@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.23(mjai.app実装版)
+ * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/21 12:34:38
+ * 最終更新日     ： 2024/07/27 09:11:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -20,6 +20,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
+
+/* ---------------------------------------------------------------------------------------------- */
+// 固定値
+/* ---------------------------------------------------------------------------------------------- */
+
+// バッファサイズ
+#define ERR_MES_MAX_SIZE      1024
 
 /* ---------------------------------------------------------------------------------------------- */
 // ラベル(各モード)
@@ -63,44 +70,48 @@ typedef enum {
 	// 卓情報
 	// -----------------------------
 
-	// プレーヤのタイプ
+	// プレーヤのキャラクタータイプ
 	static LBPlyChar ply_type;
 
-	// プレーヤ席番号
-	static int ply_id;                             // 自分のプレーヤ番号
-	static int ply_id_shimo;                       // 下家のプレーヤ番号
+	// プレーヤ席ID
+	static int ply_id;                            // 自分のプレーヤ番号
+	static int ply_id_shimo;                      // 下家のプレーヤ番号
 
-	// プレーヤの家
-	static int kyoku;                               // 局
-	static int ie;                                  // 家情報 東家：0、南家：1、ie=2でプレーヤが西家
-	static int ply_bakaze;                          // プレーヤの場風牌の牌番号(東家 = 0、南家 = 1)
-	static int ply_zikaze;                          // プレーヤの自風牌の牌番号
+	// プレーヤの家情報
+	static int kyoku;                             // 局
+	static int honba;                             // ツミ棒
+	static int riichibo;                          // リー棒
+	static int ie;                                // 家情報 東家：0、南家：1、ie=2でプレーヤが西家
+	static int ply_bakaze;                        // プレーヤの場風牌の牌番号(東家 = 0、南家 = 1)
+	static int ply_zikaze;                        // プレーヤの自風牌の牌番号
+
+	// プレーヤの得点情報
+	static int ply_kyoku_score[PLAYER_MAX];       // 局開始時の得点(1000点以下の場合はリーチを掛けない)
 
 	// ドラ情報
-	static int  dora_hai[DORA_MAX];
-	static bool dora_aka[DORA_MAX];
+	static int  dora_hai[DORA_MAX];               // ドラ牌(ドラ表示牌ではない)
 
 	// 赤牌情報
-	static int max_aka_count[AKA_SHUBETSU_MAX];     // 最大赤牌枚数
+	static int max_aka_count[AKA_TYPE_MAX_COUNT]; // 最大赤牌枚数
 
 	// 局の自摸回数
-	static int kyoku_tsumo_count;                   // 局の自摸回数(最大70まで)
+	static int kyoku_tsumo_count;                 // 局の自摸回数(最大70まで)
 
 	// -----------------------------
 	// 手牌情報
 	// -----------------------------
 
 	// 手牌情報
-	static int tehai[PAI_MAX];                      // 手牌ヒストグラム
-	static int tehai_count;                         // 手牌枚数
-	static int aka_count[AKA_SHUBETSU_MAX];         // 赤牌枚数
+	static int tehai[PAI_MAX];                    // 手牌ヒストグラム
+	static int tehai_count;                       // 手牌枚数
+	static int aka_count[AKA_TYPE_MAX_COUNT];     // 赤牌枚数
 
 	// 手牌テーブル
-	static int  tehaitbl[TEHAI_MAX];                // 牌テーブル
-	static bool tehaitbl_aka[TEHAI_MAX];            // 牌テーブル(赤牌)
+	static int  tehaitbl[TEHAI_MAX];              // 牌テーブル
+	static bool tehaitbl_aka[TEHAI_MAX];          // 牌テーブル(赤牌)
 
 	// リーチ状態
-	static int ply_riichi_mode;                     // リーチ状態(0：リーチかけてない、1：リーチ宣言時捨牌前、2：リーチ捨牌後、3：リーチ受入状態)
+	static int ply_riichi_mode;                   // リーチ状態(0：リーチかけてない、1：リーチ宣言時捨牌前、2：リーチ捨牌後、3：リーチ受入状態)
 
 	// -----------------------------
 	// 晒し牌情報
@@ -119,13 +130,13 @@ typedef enum {
 	// 河情報
 	// -----------------------------
 
-	static int  ply_kawa_count[PLAYER_MAX];       // 河の枚数
-	static int  kawa[PLAYER_MAX][30];             // 河(捨牌情報)
-	static bool kawa_aka[PLAYER_MAX][30];         // 河の赤牌有無
+	static int  ply_kawa_count[PLAYER_MAX];            // 河の枚数
+	static int  kawa[PLAYER_MAX][KAWA_HAI_MAX];        // 河(捨牌情報)
+	static bool kawa_aka[PLAYER_MAX][KAWA_HAI_MAX];    // 河の赤牌有無
 
 	// プレーヤのリーチ状態
-	static bool ply_riichi_stat[PLAYER_MAX];      // プレーヤごとのリーチ状態
-	static int  ply_riichi_turn[PLAYER_MAX];      // リーチした巡目
+	static bool ply_riichi_stat[PLAYER_MAX];           // プレーヤごとのリーチ状態
+	static int  ply_riichi_turn[PLAYER_MAX];           // リーチした巡目
 
 	// -----------------------------
 	// プレーヤーアクション情報
@@ -190,17 +201,17 @@ typedef enum {
 	// 捨牌候補・捨牌候補ごとの有効牌
 	// -----------------------------
 
-	static int sutekoho_count;                    // 捨牌候補の総数
-	static int sutekoho_hai[14];                  // 捨牌候補の牌番号
-	static int sutekoho_shanten[14];              // 捨牌候補の向聴数
-	static int sutekoho_priority[14];             // 捨牌候補の優先順位
+	static int sutekoho_count;                         // 捨牌候補の総数
+	static int sutekoho_hai[SUTEHAI_MAX_COUNT];        // 捨牌候補の牌番号
+	static int sutekoho_shanten[SUTEHAI_MAX_COUNT];    // 捨牌候補の向聴数
+	static int sutekoho_priority[SUTEHAI_MAX_COUNT];   // 捨牌候補の優先順位
 
-	static bool yuko_hai[14][40];                 // 有効牌
-	static int  yuko_haishu_count[14];            // 有効牌の牌種別数
-	static int  yuko_hai_count[14];               // 有効牌となる種別の総数
-	static int  yuko_max_count;                   // 有効牌の最大数
+	static bool yuko_hai[SUTEHAI_MAX_COUNT][PAI_MAX];  // 有効牌
+	static int  yuko_haishu_count[SUTEHAI_MAX_COUNT];  // 有効牌の牌種別数
+	static int  yuko_hai_count[SUTEHAI_MAX_COUNT];     // 有効牌となる種別の総数
+	static int  yuko_max_count;                        // 有効牌の最大数
 
-	static int fixed_sutekoho_num;                // 最終決定した捨牌番号
+	static int fixed_sutekoho_num;                     // 最終決定した捨牌番号
 
 	// -----------------------------
 	// プレーヤステータス
@@ -224,14 +235,14 @@ typedef enum {
 	// -----------------------------
 
 	// 有効牌
-	static bool yuko_hai_13mai[40];               // 13枚時の有効牌
+	static bool yuko_hai_13mai[PAI_MAX];                    // 13枚時の有効牌
 
 	// 鳴き候補テーブル
-	static int  nakikoho_tbl_count;               // 鳴き候補テーブルの枚数
-	static LBPAct nakikoho_tbl_act[20];           // 鳴き候補テーブル
-	static int  nakikoho_tbl_hai[20];             // 鳴き候補_牌テーブル
-	static int  nakikoho_tbl_idx[20];             // 鳴き候補_チーテーブル
-	static bool nakikoho_tbl_yesno[20];           // 鳴き候補_実行有無
+	static int  nakikoho_tbl_count;                         // 鳴き候補テーブルの枚数
+	static LBPAct nakikoho_tbl_act[NAKI_KOHO_MAX_COUNT];    // 鳴き候補_アクションテーブル
+	static int  nakikoho_tbl_hai[NAKI_KOHO_MAX_COUNT];      // 鳴き候補_牌テーブル
+	static int  nakikoho_tbl_idx[NAKI_KOHO_MAX_COUNT];      // 鳴き候補_牌INDEXテーブル
+	static bool nakikoho_tbl_yesno[NAKI_KOHO_MAX_COUNT];    // 鳴き候補_アクション実行可否
 
 	// -----------------------------
 	// pinfo構造体(Plyアクション情報を定義)
@@ -250,11 +261,10 @@ typedef enum {
 	// -----------------------------
 
 	// メッセージ表示バッファ
-	static char mes_buf[1024];
+	static char mes_buf[ERR_MES_MAX_SIZE];
 
 	// 表示モード
 	static int print_ply_mode;                    // ply関数の表示モード(0:何も表示しない、1:plyの設定値を表示する)
-
 
 /* ---------------------------------------------------------------------------------------------- */
 // 関数定義
@@ -274,10 +284,10 @@ typedef enum {
 	               LBPAct tmp_ply_act, 
 	               int tmp_act_hai, 
 	               int tmp_act_idx, 
-	               int tmp_act_aka_count);  // pinfo定義
+	               int tmp_act_aka_count);        // pinfo定義
 
 	// 1-1.卓開始・終了
-	void PlyActTakuStart(int tmp_ply_id,         // ply_idの決定
+	void PlyActTakuStart(int tmp_ply_id,          // ply_idの決定
 	                     int tmp_init_score,      // 卓開始時点での持ち得点
 	                     int tmp_aka_man_max,     // 萬子の赤牌枚数
 	                     int tmp_aka_pin_max,     // 筒子の赤牌枚数
@@ -291,8 +301,9 @@ typedef enum {
 	                      int tmp_honba,          // 本場
 	                      int tmp_riichibo,       // リーチ棒の本数
 	                      int tmp_ie,             // プレーヤの家番号
-	                      int tmp_dora,           // ドラ牌
-	                      int tmp_dora_aka);      // ドラ赤
+	                      bool tmp_score_flg,     // 得点変更有り無し
+	                      int tmp_score[],        // 得点情報
+	                      int tmp_dora);          // ドラ赤
 
 	void PlyActKyokuEnd();                        // 局終了処理
 
@@ -304,10 +315,11 @@ typedef enum {
 
 	// 3-1.自摸処理
 	void PlyActTsumo(struct MJSPlyInfo *pinfo, int tmp_tsumo_hai, bool tmp_tsumo_aka);   // 自摸時捨牌決定(メイン)
+	void PlyChkAISutehai();                                                              // (サブ)戦略を含めた捨牌設定
 	void PlyChkTehaiOri();                                                               // (サブ)手牌オリ確認
 	void PlyCountTsumo();                                                                // 自摸枚数をカウント
 
-	// 3-1.(サブ)アクション確認
+	// 3-1.(サブ処理)アクション確認
 	void PlyChkAnkan(int tmp_tsumo_hai, bool tmp_tsumo_aka);          // 暗槓確認
 	void PlyChkKakan(int tmp_tsumo_hai, bool tmp_tsumo_aka);          // 加槓確認
 	void PlyChkTsumoSute();                                           // 自摸時のアクションと捨牌決定
@@ -319,7 +331,7 @@ typedef enum {
 	// 3-3.捨牌後アクション処理
 	void PlyActTsumoSute();                                           // 自摸捨牌アクション(自摸捨牌、自摸切り、リーチ時捨牌)
 
-	// 3-3.(サブ)捨牌後アクション処理
+	// 3-3.(サブ処理)捨牌後アクション処理
 	void PlySetTsumoSuteTehaiHist();                                  // 1.自摸捨牌時の手牌ヒストグラム処理
 	void PlyChkPlyStat();                                             // 2.プレーヤ手牌の状態確認(メイン処理)
 	void PlyChkYaku();                                                // 3.役有り確認
@@ -333,7 +345,7 @@ typedef enum {
 
 	// 4-1.他プレーヤ処理
 	void PlyChkOthPlyTsumo();                                                       // 他プレーヤの自摸
-	void PlyChkOthPlyRiichi(int tmp_ply_id);                                       // 他プレーヤのリーチ宣言
+	void PlyChkOthPlyRiichi(int tmp_ply_id);                                        // 他プレーヤのリーチ宣言
 	void PlyChkNaki(struct MJSPlyInfo *pinfo, int suteply, int hai, bool tmp_aka);  // 鳴き確認
 
 	// 4-2.鳴きアクション処理
@@ -351,10 +363,10 @@ typedef enum {
 	void PlyActNakiSute();                                            // 鳴き捨牌後アクション
 
 	// 5-1.和了終了処理
-	void PlyAgari();
+	void PlyAgari(bool tmp_score_flg, int tmp_score[]);
 
 	// 5-2.流局終了処理
-	void PlyRyuKyoku();
+	void PlyRyuKyoku(bool tmp_score_flg, int tmp_score[]);
 
 	/* ----------------------------- */
 	// 向聴数確認(メイン処理)

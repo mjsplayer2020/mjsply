@@ -1,11 +1,11 @@
 # ---------------------------------------------------------------------------------------------- 
 # 
 # プログラム概要 ： 麻雀AI：MJSakuraモジュール
-# バージョン     ： 0.0.1.0.14(河情報の設定)
+# バージョン     ： 0.0.1.0.27(関数名変更：init, react)
 # プログラム名   ： mjs.py
 # 処理概要       ： テスト用メッセージ送信
 # Ver0.0.1作成日 ： 2024/06/22 20:30:48
-# 最終更新日     ： 2024/07/06 22:47:29
+# 最終更新日     ： 2024/07/27 09:11:38
 # 
 # Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
 # 
@@ -31,11 +31,16 @@ res_list=["{\"type\":\"start_game\",\"id\":1,\"names\":[\"ply1\",\"himawari\",\"
 #    ,"{\"type\":\"pon\",\"actor\":1,\"target\":0,\"pai\":\"F\",\"consumed\":[\"F\",\"F\"]}\n"
 
 # print(res_list)
+
+# メイン処理
 for res in res_list:
   print("================")
   print("RES->:")
   print(res)
-  snd = mjs.get_message(res)
+
+  snd = mjs.react(res)
   print("================")
   print("<-SND:")
   print(snd)
+
+# 処理ここまで

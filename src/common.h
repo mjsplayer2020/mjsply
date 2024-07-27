@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.24(赤捨牌処理の修正)
+ * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
  * プログラム名   ： mjs
  * ファイル名     ： common.h
  * クラス名       ： 共通ヘッダー
  * 処理概要       ： 共通ヘッダー
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/22 16:04:50
+ * 最終更新日     ： 2024/07/27 09:11:38
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -28,7 +28,7 @@
 #define VER2    0             // 2桁目のバージョン(ソース全体の改変があった場合(一から作り直した場合)、互換性なし)
 #define VER3    1             // 3桁目のバージョン(新機能の追加した場合、又は既存ソースからフォークした場合、互換性あり)
 #define VER4    0             // 4桁目のバージョン(雑多な細かい更新があった場合、互換性あり)
-#define VER5   24             // 5桁目のバージョン(内部管理用、公開時は常に0とする、互換性あり)
+#define VER5   27             // 5桁目のバージョン(内部管理用、公開時は常に0とする、互換性あり)
 
 // プレーヤー情報
 #define PLAYER_MAX                4     // プレーヤ数
@@ -39,13 +39,15 @@
 #define HAI_POINT_START          66     // 局開始時点の牌ポインター番号
 #define RINSHAN_POINT_START      10     // 局開始時点の牌ポインター番号
 #define PAI_MAX                  38     // 牌の種類数
-#define AKA_SHUBETSU_MAX          3     // 赤牌の種別数
+#define AKA_TYPE_MAX_COUNT        3     // 赤牌種別の最大数
 #define DORA_MAX                  5     // ドラ最大数
-#define TEHAI_MAX                13     // 手牌最大数
+#define TEHAI_MAX                13     // 手牌最大数(自摸牌含まず)
 #define MEN_MAX                   8     // 面子数
+#define NORMAL_MACHI_MAX_COUNT   10     // 通常役の待牌数
 #define KAWA_HAI_MAX             25     // 捨牌数(河牌の最大数)
-#define NORMAL_MACHI_MAX_COUNT   10     // 待牌数
-#define CHI_KOHO_COUNT_MAX        6     // チー候補最大数
+#define SUTEHAI_MAX_COUNT        14     // 捨牌候補の最大数
+#define NAKI_KOHO_MAX_COUNT      20     // 鳴き候補の最大数
+#define CHI_KOHO_COUNT_MAX        6     // チー候補の最大数
 
 // 局情報
 #define KYOKU_MAX                64     // 半荘での最大局数
@@ -118,6 +120,7 @@
 #define HAKUNUM      35   // 「白」牌番号
 #define HATSUNUM     36   // 「発」牌番号
 #define CHUNNUM      37   // 「中」牌番号
+
 #define UNKNOWNNUM   38   // 「？」牌番号
 
 #define ZERONUM       0   //  牌番号0
