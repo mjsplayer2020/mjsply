@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
+ * バージョン     ： 0.0.1.0.28(mjai.app配布版)
  * プログラム名   ： mjs
  * ファイル名     ： player.c
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/27 09:11:38
+ * 最終更新日     ： 2024/07/27 12:34:20
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -29,6 +29,9 @@ void PlyActTakuStart(int tmp_ply_id, int tmp_init_score, int tmp_aka_man_max, in
 
 	// プレーヤタイプ設定
 	ply_type = PLYCHAR_MJSPLY_TEST;
+
+	// 局INDEX初期化
+	kyoku_index = 0;
 
 	// ----------------------------------------
 	// プレーヤ番号
@@ -162,6 +165,16 @@ void PlyActKyokuStart(int tmp_kaze, int tmp_kyoku, int tmp_honba, int tmp_riichi
 		// 局開始情報
 		print_kyoku_start();
 //	}
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// 局終了処理
+/* ---------------------------------------------------------------------------------------------- */
+void PlyActKyokuEnd(){
+
+	// 局INDEX+1
+	kyoku_index++;
 
 }
 
@@ -2069,6 +2082,9 @@ void print_taku_start(){
 	// 区切り線
 	print_separator();
 
+	// 表題
+	fprintf(stderr,"[start_game]\n");
+
 	// ply_id(起家)情報
 	fprintf(stderr,"ply_id = %d\n", ply_id);
 	fprintf(stderr,"ply_id_shimo = %d\n", ply_id_shimo);
@@ -2088,8 +2104,15 @@ void print_kyoku_start(){
 	// 区切り線
 	print_separator();
 
+	// 表題
+	fprintf(stderr,"[start_kyoku]\n");
+
+	// 局INDEX情報
+	fprintf(stderr,"kyoku_index = %d\n", kyoku_index);
+
 	// 局情報
-	      if(ply_bakaze == 31){
+	fprintf(stderr,"---\n");
+	if(ply_bakaze == 31){
 		fprintf(stderr,"E-%d kyoku\n", kyoku);
 	}else if(ply_bakaze == 32){
 		fprintf(stderr,"S-%d kyoku\n", kyoku);

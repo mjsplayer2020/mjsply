@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
+ * バージョン     ： 0.0.1.0.28(mjai.app配布版)
  * プログラム名   ： mjs
  * ファイル名     ： player.h
  * クラス名       ： MJSPlayerクラス
  * 処理概要       ： プレーヤークラス
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/27 09:11:38
+ * 最終更新日     ： 2024/07/27 12:34:20
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -78,6 +78,7 @@ typedef enum {
 	static int ply_id_shimo;                      // 下家のプレーヤ番号
 
 	// プレーヤの家情報
+	static int kyoku_index;                       // 局INDEX(内部処理用)
 	static int kyoku;                             // 局
 	static int honba;                             // ツミ棒
 	static int riichibo;                          // リー棒

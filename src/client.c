@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
+ * バージョン     ： 0.0.1.0.28(mjai.app配布版)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/27 09:11:38
+ * 最終更新日     ： 2024/07/27 12:34:20
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -24,10 +24,10 @@ void set_ply_id(int tmp_ply_id){
 	// 変数初期化
 	// ----------------------------------------
 
-	// 卓開始処理(Ply_id設定)
+	// Ply_id設定
 	cli_ply_id = tmp_ply_id;
 
-	// 変数定義
+	// 赤牌定義
 	cli_max_aka_count[0] = 1;
 	cli_max_aka_count[1] = 1;
 	cli_max_aka_count[2] = 1;
@@ -59,7 +59,7 @@ void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 	struct MJSPlyInfo tmp_pinfo;
 	struct MJSClient  tmp_cli;
 
-	// 変数定義
+	// 赤牌定義
 	cli_max_aka_count[0] = 1;
 	cli_max_aka_count[1] = 1;
 	cli_max_aka_count[2] = 1;
@@ -73,7 +73,7 @@ void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 		print_cli_res_mes(tmp_res_mes);
 	}
 
-	// 解析
+	// 受信メッセージの解析
 	read_logline(&tmp_cli, tmp_res_mes);
 
 	// (デバグ用)cli構造体表示
@@ -81,7 +81,7 @@ void set_taku_stat_main(char* tmp_res_mes, char* tmp_snd_mes){
 		print_cli_wk_param(&tmp_cli);
 	}
 
-	// Mjaiのtypeごとの処理確認
+	// 受信メッセージのtypeごと処理→送信メッセージ定義
 	chk_mjai_type_main(&tmp_cli, &tmp_pinfo, tmp_snd_mes);
 
 	// (デバグ用)送信メッセージ表示
@@ -201,7 +201,7 @@ void Get_haichr(int hai_num, bool hai_aka, char hai_str[]){
 	// 字牌処理
 	if(hai_num > 30){
 
-		if(hai_num == 31){
+		      if(hai_num == 31){
 			sprintf(hai_str, "E");
 		}else if(hai_num == 32){
 			sprintf(hai_str, "S");
@@ -247,7 +247,7 @@ void Get_haichr(int hai_num, bool hai_aka, char hai_str[]){
 int get_dora_hai(int dora_maker){
 
 	// ドラ表示牌→ドラ牌の変換
-	if(dora_maker == 9){
+	      if(dora_maker ==  9){
 		return 1;
 	}else if(dora_maker == 19){
 		return 11;
@@ -635,7 +635,7 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 			         strcmp(cli->wk_str[tmp_wk_count+1], "end_kyoku" ) == 0 ){
 
 				// アクション設定
-				// Set_type_endkyoku(tk, gui, tmp_i);
+				set_type_endkyoku(cli, tmp_wk_count);
 
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
@@ -854,7 +854,7 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// ----------------------------------------
 
 	// 配牌設定
-	for(int tmp_i=0; tmp_i < TEHAI_MAX; tmp_i++){
+	for(int tmp_i = 0; tmp_i < TEHAI_MAX; tmp_i++){
 
 		// 配牌確認
 		now_tsumo_hai = get_hainum(cli->wk_str[haipai_point+tmp_i]);
@@ -1432,6 +1432,18 @@ void set_type_ryukyoku(struct MJSClient *cli, int tmp_wk_num){
 	// 和了情報設定
 	// ----------------------------------------
 	PlyAgari(tmp_score_flg, tmp_score);
+
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+// typeごとでの値設定(end_kyoku)
+/* ---------------------------------------------------------------------------------------------- */
+void set_type_endkyoku(struct MJSClient *cli, int tmp_wk_num){
+
+	// ----------------------------------------
+	// 局終了設定
+	// ----------------------------------------
+	PlyActKyokuEnd();
 
 }
 

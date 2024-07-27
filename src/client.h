@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.27(ラス牌の鳴き禁止)
+ * バージョン     ： 0.0.1.0.28(mjai.app配布版)
  * プログラム名   ： mjs
  * ファイル名     ： client.h
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/27 09:11:38
+ * 最終更新日     ： 2024/07/27 12:34:20
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -94,6 +94,7 @@ struct MJSClient{
 	void set_type_chi(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *tmp_snd_mes, int tmp_wk_num);        // チー処理
 	void set_type_hora(struct MJSClient *cli, int tmp_wk_num);                                                    // 和了処理
 	void set_type_ryukyoku(struct MJSClient *cli, int tmp_wk_num);                                                // 流局処理
+	void set_type_endkyoku(struct MJSClient *cli, int tmp_wk_num);                                                // 局終了処理
 
 	// 自摸後アクション(ply関数向け)
 	void set_post_tsumo_act(struct MJSPlyInfo *pinfo);
