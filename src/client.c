@@ -1,13 +1,13 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.28(mjai.app配布版)
+ * バージョン     ： 0.0.1.0.29(start_game処理修正版)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/27 12:34:20
+ * 最終更新日     ： 2024/07/28 19:35:39
  * 
  * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
  * 
@@ -441,9 +441,6 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 				// アクション設定
 				set_type_startgame(cli, tmp_wk_count);
 
-				// 卓開始処理
-				PlyActTakuStart(cli_ply_id, INITSCORE, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
-
 				// type_noneメッセージの設定
 				set_snd_none_mes(tmp_snd_mes);
 
@@ -694,13 +691,36 @@ void chk_mjai_type_main(struct MJSClient *cli, struct MJSPlyInfo *pinfo, char *t
 /* ---------------------------------------------------------------------------------------------- */
 void set_type_startgame(struct MJSClient *cli, int tmp_wk_num){
 
-
 	// ----------------------------------------
-	// 前処理
+	// 卓情報の算出
 	// ----------------------------------------
+	for( int tmp_subwk_count = tmp_wk_num; tmp_subwk_count < cli->wk_str_count; tmp_subwk_count++ ) {
 
-	// HUMプレーヤーのcli_ply_id設定
-	cli_ply_id = atoi(cli->wk_str[tmp_wk_num+3]);
+		// -----------------------
+		// 次のtype
+		// -----------------------
+		if(strcmp(cli->wk_str[tmp_subwk_count], "type" ) == 0 ){
+
+			// start_gameでないなら
+			if(strcmp(cli->wk_str[tmp_subwk_count+1], "start_game" ) != 0 ){
+				// 後続処理は実行しないので、処理抜け
+				break;
+			}
+
+		// -----------------------
+		// プレーヤ番号取得
+		// -----------------------
+		}else if(strcmp(cli->wk_str[tmp_subwk_count], "id" ) == 0 ){
+
+			// プレーヤ番号取得
+			cli_ply_id = atoi(cli->wk_str[tmp_subwk_count+1]);
+
+			// 卓開始処理
+			PlyActTakuStart(cli_ply_id, INITSCORE, cli_max_aka_count[0], cli_max_aka_count[1], cli_max_aka_count[2]);
+
+		}
+
+	}
 
 }
 
