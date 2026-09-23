@@ -126,7 +126,7 @@ struct MJSClient{
 	// 牌情報取得
 	int  get_hainum(char hai_str[]);                                  // 牌番号取得
 	void Get_haichr(int hai_num, bool hai_aka, char hai_str[]);       // Mjai向け牌文字取得
-	int  get_dora_hai(int dora_maker);                                // ドラ表示牌からドラ牌を取得する
+	int  get_dora_hai(int dora_marker);                                // ドラ表示牌からドラ牌を取得する
 
 	/* ----------------------------- */
 	// 表示関数：クライアント関数

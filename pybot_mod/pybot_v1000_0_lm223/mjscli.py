@@ -15,8 +15,7 @@ import socket
 import mjsmodule as mjs
 
 # 接続先サーバ定義
-host = "192.168.27.88"
-# host = "127.0.0.1"
+host = "127.0.0.1"
 port = 11600
 
 # socket初期化

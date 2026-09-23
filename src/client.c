@@ -1,15 +1,16 @@
 /* ---------------------------------------------------------------------------------------------- 
  * 
  * プログラム概要 ： 麻雀AI：MJSakuraモジュール
- * バージョン     ： 0.0.1.0.29(start_game処理修正版)
+ * バージョン     ： 0.0.2.0.6(不具合修正：鳴き候補テーブルで再起処理前の一時退避を実施していなかった)
  * プログラム名   ： mjs
  * ファイル名     ： client.c
  * クラス名       ： MJSMjaiClient構造体
  * 処理概要       ： クライアント構造体
  * Ver0.0.1作成日 ： 2024/06/01 16:03:43
- * 最終更新日     ： 2024/07/28 19:35:39
+ * Ver0.0.2作成日 ： 2025/01/02 15:34:38
+ * 最終更新日     ： 2025/01/12 14:19:33
  * 
- * Copyright (c) 2010-2024 TechMileStoraJP, All rights reserved.
+ * Copyright (c) 2010-2025 TechMileStoraJP, All rights reserved.
  * 
  * ---------------------------------------------------------------------------------------------- */
 
@@ -244,24 +245,24 @@ void Get_haichr(int hai_num, bool hai_aka, char hai_str[]){
 /* ---------------------------------------------------------------------------------------------- */
 // ドラ表示牌からドラ牌を取得する
 /* ---------------------------------------------------------------------------------------------- */
-int get_dora_hai(int dora_maker){
+int get_dora_hai(int dora_marker){
 
 	// ドラ表示牌→ドラ牌の変換
-	      if(dora_maker ==  9){
+	      if(dora_marker ==  9){
 		return 1;
-	}else if(dora_maker == 19){
+	}else if(dora_marker == 19){
 		return 11;
-	}else if(dora_maker == 29){
+	}else if(dora_marker == 29){
 		return 21;
-	}else if(dora_maker == 34){
+	}else if(dora_marker == 34){
 		return 31;
-	}else if(dora_maker == 37){
+	}else if(dora_marker == 37){
 		return 35;
 	// デバグ用
-	}else if(dora_maker < 1 || dora_maker > 37){
+	}else if(dora_marker < 1 || dora_marker > 37){
 		return 1;
 	}else{
-		return dora_maker+1;
+		return dora_marker+1;
 	}
 
 }
@@ -867,7 +868,8 @@ void set_type_startkyoku(struct MJSClient *cli, int tmp_wk_num){
 	// ----------------------------------------
 	// pinfo設定(局開始)
 	// ----------------------------------------
-	PlyActKyokuStart(tmp_kaze, tmp_kyoku, tmp_honba, tmp_riichbo, tmp_ply_ie, tmp_score_flg, tmp_score, get_dora_hai(tmp_dora_hai));
+	// PlyActKyokuStart(tmp_kaze, tmp_kyoku, tmp_honba, tmp_riichbo, tmp_ply_ie, tmp_score_flg, tmp_score, get_dora_hai(tmp_dora_hai));
+	PlyActKyokuStart(tmp_kaze, tmp_kyoku, tmp_honba, tmp_riichbo, tmp_ply_ie, tmp_score_flg, tmp_score, tmp_dora_hai);
 
 	// ----------------------------------------
 	// 配牌設定
@@ -1759,6 +1761,7 @@ void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_
 
 	// 変数定義
 	char tmp_hai_chr[5];
+	char tmp_hai_chr2[16];
 	int tmp_chi_count = 0;
 
 	// Mes取得準備：文字取得(鳴き牌)
@@ -1781,17 +1784,20 @@ void set_snd_chi_mes(char *tmp_snd_mes, int ply_target, int nakl_hai, bool nakl_
 				Get_haichr(naki_idx + tmp_i, false, tmp_hai_chr);
 			}
 			// 鳴きメッセージ作成
-			sprintf(tmp_snd_mes, "%s\"%s\"", tmp_snd_mes, tmp_hai_chr);
+			// sprintf(tmp_snd_mes2, "\"%s\"", tmp_hai_chr);
+			sprintf(tmp_hai_chr2, "\"%s\"", tmp_hai_chr);
+			strcat(tmp_snd_mes, tmp_hai_chr2);
 			// 最後でないなら、カンマ追加
 			if(tmp_chi_count != 2){
-				sprintf(tmp_snd_mes, "%s,", tmp_snd_mes);
+				// sprintf(tmp_snd_mes3, ",");
+				strcat(tmp_snd_mes, ",");
 			}
 		}
 	}
 
 	// sendメッセージ設定(フッター)
-	sprintf(tmp_snd_mes, "%s]}\n", tmp_snd_mes);
-
+	// sprintf(tmp_snd_mes, "]}\n");
+	strcat(tmp_snd_mes, "]}\n");
 }
 
 /* ---------------------------------------------------------------------------------------------- */
